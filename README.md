@@ -4,14 +4,14 @@ Design guidance and a deterministic detector for Flutter, ported from [pbakaus/i
 
 Two pieces:
 
-- **`skills/impeccable-flutter/`** — an agent skill: `SKILL.md` plus 16 reference playbooks covering the Flutter platform contract, theming, type, layout, color, motion, hardening, adaptivity, and a device-based verification loop.
-- **`detector/`** — a zero-dependency Dart CLI that runs 69 rules over Dart source across four target surfaces (phone, tablet, TV, web). No model, no network, no running app.
+- `skills/impeccable-flutter/` is the agent skill: `SKILL.md` plus 18 reference playbooks covering the Flutter platform contract, theming, type, layout, color, motion, hardening, adaptivity, TV, and a device-based verification loop.
+- `detector/` is a zero-dependency Dart CLI that runs 69 rules over Dart source across four target surfaces (phone, tablet, TV, web). It needs no model, no network and no running app.
 
 ## Why a port rather than a config
 
 Upstream impeccable is a 125k-line Rust engine whose static path reads HTML and CSS and whose deep checks drive a real browser: computed styles, element picking, rendered geometry. Flutter paints to a canvas. None of that transfers.
 
-What does transfer is the rule catalog. `tool/extract_registry.pl` pulls all 61 rules straight out of upstream's `crates/foundation/src/registry.rs` into `tool/upstream_registry.json`, and every ported rule names the upstream id it carries in its `portOf` field — checked by a test, so the provenance cannot silently rot.
+What does transfer is the rule catalog. `tool/extract_registry.pl` pulls all 61 rules straight out of upstream's `crates/foundation/src/registry.rs` into `tool/upstream_registry.json`, and every ported rule names the upstream id it carries in its `portOf` field. A test checks that, so the provenance cannot silently rot.
 
 ## The rules
 
@@ -19,7 +19,7 @@ What does transfer is the rule catalog. `tool/extract_registry.pl` pulls all 61 
 |---|---|---|
 | `slop` | 31 | Taste failures, all ported from upstream |
 | `quality` | 15 | Defects a user feels, all ported |
-| `platform` | 23 | Flutter, Material, HIG, TV focus, web and pubspec contracts — no upstream equivalent |
+| `platform` | 23 | Flutter, Material, HIG, TV focus, web and pubspec contracts, with no upstream equivalent |
 
 ## What is not ported, and why
 
@@ -31,18 +31,20 @@ What does transfer is the rule catalog. `tool/extract_registry.pl` pulls all 61 
 
 **3 are portable but deliberately skipped**, because a Flutter port of them would report more noise than signal:
 
-- `organic-clip-path` and `shape-assembled-illustration` — a `ClipPath` with a custom clipper is ordinary in Flutter, and nothing in the source separates a cheap geometric stand-in from a legitimate one.
-- `skipped-heading` — Flutter has no heading levels. `Semantics(header: true)` is a boolean, so there is no level to skip.
+- `organic-clip-path` and `shape-assembled-illustration`: a `ClipPath` with a custom clipper is ordinary in Flutter, and nothing in the source separates a cheap geometric stand-in from a legitimate one.
+- `skipped-heading`: Flutter has no heading levels. `Semantics(header: true)` is a boolean, so there is no level to skip.
 
-The 17 platform rules are the part that has no upstream counterpart, because a web page has no notch, no text scaler, no predictive back, no D-pad and no 48dp floor: `hardcoded-color`, `hardcoded-text-style`, `missing-safe-area`, `tap-target-undersized`, `mediaquery-size-branch`, `missing-semantics`, `deprecated-with-opacity`, `unbounded-list`, `fixed-height-text-box`, `platform-control-mix`, `deprecated-will-pop-scope`, `network-image-unguarded`, plus five that only apply to focus-driven surfaces: `unreachable-by-dpad`, `missing-focus-highlight`, `no-autofocus-on-route`, `hover-only-affordance`, `overscan-unsafe`.
+The 23 platform rules have no upstream counterpart at all, because a web page has no notch, no text scaler, no predictive back, no D-pad and no 48dp floor. Fifteen of them run on every target: `hardcoded-color`, `hardcoded-text-style`, `missing-safe-area`, `tap-target-undersized`, `mediaquery-size-branch`, `missing-semantics`, `deprecated-with-opacity`, `unbounded-list`, `fixed-height-text-box`, `platform-control-mix`, `deprecated-will-pop-scope`, `network-image-unguarded`, `image-no-cache-size`, `undeclared-font`, `undeclared-asset`.
+
+Eight more are scoped to a surface. Five run where focus is the cursor: `unreachable-by-dpad`, `missing-focus-highlight`, `no-autofocus-on-route`, `hover-only-affordance`, `overscan-unsafe`. Three run on web only: `mouse-drag-scroll`, `text-not-selectable`, `hash-url-strategy`.
 
 ## Design-system conformance
 
-Four rules — `design-system-color`, `design-system-font`, `design-system-font-size`, `design-system-radius` — check code against the project's own `DESIGN.md` rather than against a universal standard. They ask whether a value is one the project ever declared.
+Four rules (`design-system-color`, `design-system-font`, `design-system-font-size`, `design-system-radius`) check code against the project's own `DESIGN.md` rather than against a universal standard. They ask whether a value is one the project ever declared.
 
 They stay silent unless a `DESIGN.md` is found, because a project with no declared system has nothing for a value to be outside of. The detector walks up from the scanned path to find it, or takes `--design <path>`.
 
-The parse is deliberately forgiving — it scans for value-shaped tokens rather than demanding a schema, so the document stays something a person can edit:
+The parse is deliberately forgiving. It scans for value-shaped tokens instead of demanding a schema, so the document stays something a person can edit:
 
 ```markdown
 ## Color
@@ -50,7 +52,7 @@ The parse is deliberately forgiving — it scans for value-shaped tokens rather 
 
 ## Type
 Font: Söhne
-Type ramp — font size: 36, 24, 18, 16, 13
+Type ramp, font size: 36, 24, 18, 16, 13
 
 ## Spacing and shape
 Corner radius: 4, 8, 12
@@ -61,8 +63,8 @@ Alpha is ignored when matching colors, so a declared token used at 40% opacity s
 ## Use
 
 ```bash
-nix develop            # or direnv allow
-make test              # 240 tests across both packages
+nix develop            # or direnv allow; any Dart 3.6+ SDK works without nix
+make test              # 241 tests across both packages
 make rules             # the catalog
 make signals P=path/to/your/app   # what the project already is
 make detect P=path/to/your/app/lib
@@ -77,52 +79,21 @@ impeccable-flutter detect lib --target tv
 impeccable-flutter detect lib --only hardcoded-color --json
 ```
 
-Waive a finding inline:
-
-```dart
-// impeccable-disable: hardcoded-color
-const brandStamp = Color(0xFF1B7F5C);
-```
-
-A comment on its own line waives the line below; a trailing one waives its own line. `// impeccable-disable-file` covers the file.
+An `// impeccable-disable` comment waives a finding in place; [GETTING-STARTED.md](GETTING-STARTED.md#everyday) has the syntax.
 
 ## Adopting on an existing app
 
-A first run on a real codebase reports a lot, `--fail-on` can never be switched on, and the tool gets ignored. A baseline freezes what is already there so CI can block *new* findings from day one.
+A first run on a real codebase reports a lot, `--fail-on` can never be switched on, and the tool gets ignored. A baseline freezes what is already there so CI can block *new* findings from day one. Entries key on rule id, file, and the source line's text instead of the line number, so editing above a finding does not resurrect it. When a finding is fixed, the next run says how many entries are stale and `--write-baseline` prunes them. Nothing re-adds an entry on its own; deleting one by hand is how you opt a finding back in.
 
-```bash
-impeccable-flutter detect lib --baseline .impeccable-baseline.json --write-baseline
-impeccable-flutter detect lib --baseline .impeccable-baseline.json --fail-on error
-```
-
-Entries key on rule id, file, and the source line's text — not the line number — so editing above a finding does not resurrect it. When a finding is fixed, the next run says how many entries are stale and `--write-baseline` prunes them. Nothing re-adds an entry on its own; deleting one by hand is how you opt a finding back in.
-
-In CI, `--format github` prints annotations that land on the diff instead of in the log.
+In CI, `--format github` prints annotations that land on the diff instead of in the log. [GETTING-STARTED.md](GETTING-STARTED.md#4-adopt-on-an-existing-app) has the commands.
 
 ## In the editor
 
 `lint/` is a [custom_lint](https://pub.dev/packages/custom_lint) plugin that surfaces the same findings as squiggles in VS Code and IntelliJ. The detector stays dependency-free; this package is the only thing that touches the analyzer.
 
-In the Flutter project you want checked:
+It goes in the Flutter project's `dev_dependencies` alongside `custom_lint`, with `custom_lint` listed under `analyzer.plugins`; [GETTING-STARTED.md](GETTING-STARTED.md#6-editor-diagnostics-optional) has both snippets. Then `dart run custom_lint` on the command line, or just open the project.
 
-```yaml
-# pubspec.yaml
-dev_dependencies:
-  custom_lint: ^0.7.0
-  impeccable_flutter_lint:
-    path: ../impeccable-flutter/lint
-```
-
-```yaml
-# analysis_options.yaml
-analyzer:
-  plugins:
-    - custom_lint
-```
-
-Then `dart run custom_lint` on the command line, or just open the project.
-
-**The target is inferred, not configured.** An Android TV app declares a `LEANBACK_LAUNCHER` intent and nothing else does, so a TV project gets its focus rules in the editor without anyone remembering to set a flag. Override it where the inference is wrong:
+**The target is inferred.** An Android TV app declares a `LEANBACK_LAUNCHER` intent and nothing else does, so a TV project gets its focus rules in the editor without anyone remembering to set a flag. Override it where the inference is wrong:
 
 ```yaml
 custom_lint:
@@ -135,29 +106,22 @@ Rule names match the CLI's, so `// ignore: tiny-text` and the detector's own `//
 
 ## Install
 
-```bash
-make build      # compile detector/build/impeccable-flutter (standalone, no Dart at runtime)
-make install    # symlink the launcher into ~/.local/bin (override with PREFIX=)
-```
-
-`make install` links `skills/impeccable-flutter/scripts/impeccable-flutter`, a launcher that runs the compiled binary when one exists and falls back to the Dart source otherwise. Either way the calling project needs nothing: no pubspec entry, no Dart SDK once the binary is built.
-
-`dart run impeccable_flutter …` only works from inside `detector/`, because `dart run <package>` resolves against the *calling* project's dependencies. Use the launcher from a real Flutter project.
-
-## Install the skill
+[GETTING-STARTED.md](GETTING-STARTED.md) covers the skill in personal or project scope, the detector build, starting a project, adoption and editor diagnostics. The short version:
 
 ```bash
-cp -r skills/impeccable-flutter ~/.claude/skills/
+make build      # compile detector/build/impeccable-flutter
+make install    # put the launcher on PATH (override with PREFIX=)
+
+ln -s "$PWD/skills/impeccable-flutter" ~/.claude/skills/impeccable-flutter
 ```
 
-The skill calls the launcher at `<skill-dir>/scripts/impeccable-flutter`, which is copied along with it, so the skill works whether or not the binary is on PATH.
+Then `/impeccable-flutter init` inside a Flutter project.
 
+## Fixtures
 
-## Test bed
+`detector/test/fixtures/` is the corpus, and two tests over it matter more than the rest: the slop fixtures must trip **every** rule in the catalog, and the clean ones must produce **zero** findings. A rule that only fires in its own unit test does not survive contact with real widget code.
 
-`../flutter-tests` is a runnable Flutter app holding four screens: two phone (`slop_home.dart`, 32 findings across 25 rules, and `clean_home.dart`, none) and two TV (`tv_home.dart`, 6 findings including two focus errors under `--target tv`, and `tv_clean_home.dart`, none). `make -C ../flutter-tests detect`, `clean-detect`, `tv-detect` and `tv-clean-detect` show each pair; `make run` switches between all four in the app.
-
-The detector's own corpus is in `detector/test/fixtures/`, with two tests that matter more than the rest: the slop corpus must trip **every** rule in the catalog, and the clean fixture must produce **zero** findings. A rule that only fires in its own unit test does not survive contact with real widget code.
+`../flutter-tests` is a local scratch app for trying things against a real Flutter build. It is not part of the product.
 
 ## Re-extracting upstream
 
@@ -172,7 +136,8 @@ If upstream renames or drops a rule, the provenance test fails and names it.
 ## Layout
 
 ```
-skills/impeccable-flutter/   SKILL.md + reference/*.md
+GETTING-STARTED.md           installing and starting a project
+skills/impeccable-flutter/   SKILL.md + reference/*.md + scripts/
 detector/lib/src/            source model, colors, registry, rules, scanner
 lint/                        custom_lint plugin for IDE diagnostics
 detector/test/               unit, rule, registry and fixture tests
@@ -184,4 +149,4 @@ tool/upstream_registry.json  the 61 upstream rules
 
 Apache-2.0, matching [Impeccable](https://github.com/pbakaus/impeccable), which this derives from. The rule catalog in `tool/upstream_registry.json` is extracted from its Apache-2.0 source, so this project cannot be released under more permissive terms. `NOTICE` records what was derived and how it changed, as Apache-2.0 §4 requires.
 
-The `../flutter-tests` test bed shares no upstream material and is MIT.
+The `../flutter-tests` scratch app shares no upstream material and is MIT.

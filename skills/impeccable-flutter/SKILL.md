@@ -1,6 +1,6 @@
 ---
 name: impeccable-flutter
-description: Use when designing, redesigning, critiquing, auditing, polishing, hardening, adapting, animating, or otherwise improving a Flutter interface — screens, widgets, themes, navigation, forms, onboarding, empty states. Covers Material 3 and Cupertino conformance, theme and token design, type scales, color schemes, motion, adaptive and responsive layout, accessibility (TalkBack/VoiceOver, text scaling, tap targets), dark mode, edge cases, and the design anti-patterns that generated Flutter code converges on. Not for backend, plugin, or non-UI Dart work.
+description: Use when designing, redesigning, critiquing, auditing, polishing, hardening, adapting, animating, or otherwise improving a Flutter interface, screens, widgets, themes, navigation, forms, onboarding, empty states. Covers Material 3 and Cupertino conformance, theme and token design, type scales, color schemes, motion, adaptive and responsive layout, accessibility (TalkBack/VoiceOver, text scaling, tap targets), dark mode, edge cases, and the design anti-patterns that generated Flutter code converges on. Not for backend, plugin, or non-UI Dart work.
 version: 0.1.0
 user-invocable: true
 argument-hint: "[detect|audit|critique · document|init · typeset|layout|colorize|animate · harden|adapt|polish] [target]"
@@ -23,16 +23,16 @@ Core principles:
 ## Setup
 
 1. Run `impeccable-flutter signals` and read it: project name, platform folders, the target inferred from the Android manifest, and whether PRODUCT.md, DESIGN.md, a theme and a baseline already exist. Everything it reports is a fact on disk; asking the user about any of it wastes their time. With no PRODUCT.md, route through [reference/init.md](reference/init.md) instead of guessing.
-2. Establish the **target surface** — `phone`, `tablet`, `tv` or `web`. It decides which rules apply and what the thresholds are, and a TV build judged as a phone build passes checks it should fail. `signals` infers it where it can; ask once where it cannot. Then run the detector before reading any widget code:
+2. Establish the **target surface**: `phone`, `tablet`, `tv` or `web`. It decides which rules apply and what the thresholds are, and a TV build judged as a phone build passes checks it should fail. `signals` infers it where it can; ask once where it cannot. Then run the detector before reading any widget code:
    `impeccable-flutter detect <lib or file> --target <surface>` (the launcher at `<skill-dir>/scripts/impeccable-flutter`, or `impeccable-flutter` when it is on PATH). It is deterministic, needs no network and no model, and it tells you which of 69 rules the code already trips. Findings are evidence; start from them rather than re-deriving them by reading.
-3. Read `DESIGN.md` and `PRODUCT.md` if the project has them. Missing files do not make a project greenfield — the existing theme and widgets are the incumbent visual world, and `document` is how you capture it.
-4. Read [reference/flutter.md](reference/flutter.md) before any UI edit; it carries the platform contract. On a TV target read [reference/tv.md](reference/tv.md) as well — it overrides the touch guidance rather than adding to it. Read [reference/craft-floor.md](reference/craft-floor.md) immediately before writing widget code; it holds the quality floor and the bans.
+3. Read `DESIGN.md` and `PRODUCT.md` if the project has them. Missing files do not make a project greenfield, the existing theme and widgets are the incumbent visual world, and `document` is how you capture it.
+4. Read [reference/flutter.md](reference/flutter.md) before any UI edit; it carries the platform contract. On a TV target read [reference/tv.md](reference/tv.md) as well, it overrides the touch guidance rather than adding to it. Read [reference/craft-floor.md](reference/craft-floor.md) immediately before writing widget code; it holds the quality floor and the bans.
 
 ## How to design
 
 - **The brief wins.** Honor pinned aesthetics, eras, fonts and palettes even when they conflict with an anti-pattern warning. Redirecting a clear brief toward your own taste is failure.
 - **Refinement preserves; redesign replaces.** Refinement keeps the incumbent identity, copy, behavior, and everything outside scope. Redesign keeps product truth, content, function and platform affordances, but treats the old look as evidence and anti-reference.
-- **Material 3 is the rulebook on Android, HIG on iOS.** Brand expresses through `ColorScheme`, `TextTheme`, shape and motion — the layer the platform leaves open. It does not express through reinvented navigation or custom switches.
+- **Material 3 is the rulebook on Android, HIG on iOS.** Brand expresses through `ColorScheme`, `TextTheme`, shape and motion, the layer the platform leaves open. It does not express through reinvented navigation or custom switches.
 
 ## Modes
 
@@ -45,7 +45,7 @@ The mode names what success looks like on this surface. It narrows what expressi
 
 ## Targets
 
-The target surface decides which rules apply and what the numbers mean. It is not a breakpoint — it names the input the user has.
+The target surface decides which rules apply and what the numbers mean. It is not a breakpoint, it names the input the user has.
 
 | Target | Input | What changes |
 |---|---|---|
@@ -53,7 +53,7 @@ The target surface decides which rules apply and what the numbers mean. It is no
 | `tv` | D-pad | no tap targets at all; focus is the cursor. 48px overscan margin, 20sp text floor, headline ceiling rises to 96. Five focus rules switch on |
 | `web` | pointer + keyboard | hover exists, and so does Tab. The focus rules apply; overscan and autofocus do not |
 
-A TV build judged as a phone build passes checks it should fail: the tap-target rule fires on nothing useful and the real failures — unreachable controls, an invisible focus ring, content in the overscan band — are never looked for. [tv.md](reference/tv.md) carries that contract.
+A TV build judged as a phone build passes checks it should fail: the tap-target rule fires on nothing useful and the real failures, unreachable controls, an invisible focus ring, content in the overscan band, are never looked for. [tv.md](reference/tv.md) carries that contract.
 
 ## Commands
 
@@ -78,13 +78,13 @@ A TV build judged as a phone build passes checks it should fail: the tap-target 
 Routing:
 
 - **No PRODUCT.md:** route through [init.md](reference/init.md), which asks once whether to build plain or shape the direction first. Never start an interview the user did not ask for.
-- **No argument:** run `detect` over the changed files, then lead with the 2–3 highest-value commands based on what it found. Never auto-run a command; the recommendation is a suggestion the user confirms.
+- **No argument:** run `detect` over the changed files, then lead with the 2-3 highest-value commands based on what it found. Never auto-run a command; the recommendation is a suggestion the user confirms.
 - **Explicit or clearly implied command:** load its reference and follow it. Ask once if two fit.
 - **Otherwise:** treat it as general design work, starting from `detect` output.
 
 ## What this skill does not do
 
-There is no live browser mode. Flutter renders to a canvas, so the DOM overlay, computed-style checks and element picking that the web version of this tooling relies on have no equivalent. The replacements are the static detector and the device capture loop in [reference/verify.md](reference/verify.md). Rules that need rendered geometry — text occlusion, real line length, overflow, broken images — are not in the detector and are checked from screenshots and widget tests instead.
+There is no live browser mode. Flutter renders to a canvas, so the DOM overlay, computed-style checks and element picking that the web version of this tooling relies on have no equivalent. The replacements are the static detector and the device capture loop in [reference/verify.md](reference/verify.md). Rules that need rendered geometry, text occlusion, real line length, overflow, broken images, are not in the detector and are checked from screenshots and widget tests instead.
 
 ## Provenance
 

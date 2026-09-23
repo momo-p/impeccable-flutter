@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:test/test.dart';
 
 /// The skill tells an agent which command to run. If that command does not
-/// work from a real Flutter project, every instruction downstream of it fails
-/// — which is exactly what shipped once, because `dart run impeccable_flutter`
-/// resolves against the *calling* project's dependencies, not this package's.
+/// work from a real Flutter project, every instruction downstream of it fails.
+/// That is what shipped once: `dart run impeccable_flutter` resolves against
+/// the *calling* project's dependencies, not this package's.
 void main() {
   final skillDir = Directory('../skills/impeccable-flutter');
   final launcher = File('${skillDir.path}/scripts/impeccable-flutter');
@@ -63,5 +63,16 @@ void main() {
       expect(cli, contains("'$token'"),
           reason: '$token is documented but the CLI does not handle it');
     }
+  });
+  test('the launcher can find a detector from a copied skill', () {
+    // The skill installs two ways: symlinked at ~/.claude/skills, or copied
+    // into <project>/.claude/skills. A copy has no detector above it, so the
+    // launcher has to fall back to PATH. An earlier version did not, so the
+    // documented project-scope install simply did not work.
+    final body = launcher.readAsStringSync();
+    expect(body, contains('command -v impeccable-flutter'),
+        reason: 'no PATH fallback, so a copied skill cannot find the detector');
+    expect(body, contains(r'$onpath" != "$self'),
+        reason: 'the PATH fallback must not re-exec this same script');
   });
 }

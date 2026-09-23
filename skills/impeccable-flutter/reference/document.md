@@ -28,7 +28,7 @@ A color used in fourteen places and defined nowhere is part of the real system. 
 
 The detector reads this document back: the four `design-system-*` rules check code against the values recorded here. The parse is forgiving and scans for value-shaped tokens rather than a schema, but it only finds what is actually written down. A color you describe as "the green" and never give a hex for cannot be checked.
 
-Keep values on a line with their label — `font size:`, `corner radius:`, a table row with a hex — and the parse picks them up.
+Keep values on a line with their label, `font size:`, `corner radius:`, a table row with a hex, and the parse picks them up.
 
 ```markdown
 # DESIGN.md
@@ -49,7 +49,7 @@ The dark scheme's status, and any color living outside the theme, with the file.
 Font: Söhne
 Display font: Fraunces
 
-Type ramp — font size: 36, 24, 18, 16, 13
+Type ramp, font size: 36, 24, 18, 16, 13
 
 Where screens depart from the roles.
 
@@ -66,7 +66,7 @@ The recurring widgets that carry the identity, and where they live.
 Transition patterns in use, curves, durations.
 
 ## Known drift
-Where the code disagrees with the theme. Not a to-do list — a record of
+Where the code disagrees with the theme. Not a to-do list, a record of
 what is true today.
 ```
 

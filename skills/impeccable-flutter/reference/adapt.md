@@ -18,7 +18,7 @@ LayoutBuilder(
 )
 ```
 
-Material's window size classes: **compact** under 600, **medium** 600–840, **expanded** 840 and up.
+Material's window size classes: **compact** under 600, **medium** 600-840, **expanded** 840 and up.
 
 ## Phone to tablet
 
@@ -48,10 +48,10 @@ If the app adapts per platform, adapt the whole vocabulary, not one control:
 | `AlertDialog` | `CupertinoAlertDialog` |
 | `CircularProgressIndicator` | `CupertinoActivityIndicator` |
 
-One `CupertinoButton` inside a Material `Scaffold` gives each platform half an app it does not recognize. Pick per platform, not per widget — `Theme.of(context).platform` at the top, or adaptive constructors (`Switch.adaptive`) throughout.
+One `CupertinoButton` inside a Material `Scaffold` gives each platform half an app it does not recognize. Pick per platform, not per widget, `Theme.of(context).platform` at the top, or adaptive constructors (`Switch.adaptive`) throughout.
 
 ## Verify
 
-Test at each size class, both orientations, and split-screen where supported. Simulators give breadth; posture, gestures and performance need hardware. Say which produced the evidence — see [verify.md](verify.md).
+Test at each size class, both orientations, and split-screen where supported. Simulators give breadth; posture, gestures and performance need hardware. Say which produced the evidence, see [verify.md](verify.md).
 
 **Never**: ship a stretched phone layout on a tablet; port one platform's navigation onto the other; hide core functionality on small screens; lock orientation to dodge a layout bug.

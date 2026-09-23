@@ -8,7 +8,7 @@ Start from `detect --only overused-font,flat-type-hierarchy,tiny-text,tight-lead
 
 Steps, not a gradient. A scale a reader can feel has roughly a 1.25 ratio between adjacent roles and no two roles within four pixels. Define it once in `TextTheme` ([theme.md](theme.md)) and have screens pick roles.
 
-`height` is a multiplier in Flutter, not a length. Body copy wants 1.4–1.6; display sizes want 1.05–1.2. A `height` under 1.15 on running text crowds the lines.
+`height` is a multiplier in Flutter, not a length. Body copy wants 1.4-1.6; display sizes want 1.05-1.2. A `height` under 1.15 on running text crowds the lines.
 
 `letterSpacing` is logical pixels, not em. At `fontSize: 40`, `letterSpacing: -1.6` is -0.04em, which is the floor. Tighten display sizes, leave body alone, and open small caps labels slightly.
 
@@ -27,7 +27,7 @@ fonts:
         weight: 600
 ```
 
-Then `fontFamily: 'Söhne'` on `ThemeData`. `google_fonts` fetches at runtime by default, which means a flash of fallback text on first launch — bundle the files instead where licensing allows.
+Then `fontFamily: 'Söhne'` on `ThemeData`. `google_fonts` fetches at runtime by default, which means a flash of fallback text on first launch, bundle the files instead where licensing allows.
 
 ## Text scaling
 

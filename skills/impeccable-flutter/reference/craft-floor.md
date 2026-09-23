@@ -6,7 +6,7 @@ Load after the direction is settled, and build without announcing the checklist.
 
 Checks on the built result, not on intentions. Run them together in one pass.
 
-- **Contrast:** body text ≥4.5:1 against its actual surface, large text ≥3:1, in both schemes. On a colored surface, tint the secondary text from that hue — never drop to gray.
+- **Contrast:** body text ≥4.5:1 against its actual surface, large text ≥3:1, in both schemes. On a colored surface, tint the secondary text from that hue, never drop to gray.
 - **Depth:** elevation comes from `surfaceTint` and tonal levels, or a shadow with a real offset and soft blur. A zero-offset colored shadow is a glow, not depth.
 - **Spacing:** tight groups, generous separation, more space above a heading than below it. If nearly every gap is the same number, no rhythm was designed.
 - **Type:** a scale with obvious steps, body measure that does not run edge to edge on a tablet, tracking floor -0.04em. Run the real copy at 200% text scale and fix what clips.
@@ -17,7 +17,7 @@ Checks on the built result, not on intentions. Run them together in one pass.
 
 ## Refuse
 
-These are the category's defaults, not bans — the brief's own words can earn any of them. Reaching for one when the axis is free means you were not deciding.
+These are the category's defaults, not bans, the brief's own words can earn any of them. Reaching for one when the axis is free means you were not deciding.
 
 Screen scaffolds:
 
@@ -47,6 +47,6 @@ No rule catches these, and they are what separates working code from shipped cod
 - Give every `IconButton` a `tooltip` at the moment you write it.
 - Reach for `ListView.builder` by default; the non-builder form is the exception for a short fixed list.
 - Dispose every controller you create in the `initState` that created it.
-- When you write a `GestureDetector`, ask whether `InkWell` belongs there instead — it gives you the ripple the platform expects.
+- When you write a `GestureDetector`, ask whether `InkWell` belongs there instead, it gives you the ripple the platform expects.
 
 The floor holds the mechanics; it never picks the direction. With every check green, spend the screen on the committed world.

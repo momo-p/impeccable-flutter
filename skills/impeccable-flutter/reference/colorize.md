@@ -2,7 +2,7 @@
 
 Give the app a color point of view, and make dark mode real.
 
-Start from `detect --only ai-color-palette,hardcoded-color,dark-glow,radial-halo,low-contrast,gradient-text`. If literals are widespread, run [theme.md](theme.md) first — this command has nothing to work with until the scheme exists.
+Start from `detect --only ai-color-palette,hardcoded-color,dark-glow,radial-halo,low-contrast,gradient-text`. If literals are widespread, run [theme.md](theme.md) first. This command has nothing to work with until the scheme exists.
 
 ## Pick a seed with a reason
 

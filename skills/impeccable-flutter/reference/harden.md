@@ -9,7 +9,7 @@ Start from `detect --only network-image-unguarded,fixed-height-text-box,missing-
 Every screen that loads anything needs all four. Generated code ships one.
 
 - **Loading.** A skeleton in the shape of the real content. A centered spinner on a blank page tells the user nothing about what is coming.
-- **Empty.** Says what goes here and how to create the first one. This is an onboarding surface, not an error — and it is the screen a new user sees first.
+- **Empty.** Says what goes here and how to create the first one. This is an onboarding surface, not an error, and it is the screen a new user sees first.
 - **Error.** Names the problem and the recovery. "Something went wrong" names neither. The retry must actually retry.
 - **Offline.** Phones lose signal. Say what is stale, what is queued, and what will happen when the connection returns.
 
@@ -44,7 +44,7 @@ Every network call needs a timeout. A request with no deadline is a spinner with
 
 ## i18n
 
-- No user-facing string literal in a widget. Route them through `AppLocalizations` even if only one language ships today — retrofitting is much more expensive.
+- No user-facing string literal in a widget. Route them through `AppLocalizations` even if only one language ships today, retrofitting is much more expensive.
 - Dates, numbers and currency through `intl`, not string interpolation.
 - Do not build sentences by concatenation; word order differs by language.
 - `Directionality` for RTL: use `EdgeInsetsDirectional` and `AlignmentDirectional` rather than left and right.

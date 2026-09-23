@@ -1,12 +1,12 @@
 # audit
 
-A scored technical review of a Flutter surface. Document issues; do not fix them — other commands do that. This is a code-level audit, not a UX critique; [critique.md](critique.md) is that.
+A scored technical review of a Flutter surface. Document issues; do not fix them, other commands do that. This is a code-level audit, not a UX critique; [critique.md](critique.md) is that.
 
 Start from `detect` output rather than re-deriving it by reading. Score against [flutter.md](flutter.md).
 
 ## Diagnostic scan
 
-Score each dimension 0–4.
+Score each dimension 0-4.
 
 ### 1. Accessibility
 
@@ -71,7 +71,7 @@ Score each dimension 0–4.
 | 5 | Adaptivity | ? | |
 | **Total** | | **??/20** | |
 
-**Bands**: 18–20 excellent · 14–17 good · 10–13 acceptable · 6–9 poor · 0–5 critical
+**Bands**: 18-20 excellent · 14-17 good · 10-13 acceptable · 6-9 poor · 0-5 critical
 
 ### Platform conformance verdict
 

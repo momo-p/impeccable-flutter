@@ -27,7 +27,7 @@ Dark mode is a scheme you design, not an invert you enable. Build both with `Col
 
 - **`SafeArea` around content.** Without it, content runs under the notch, the status bar, the home indicator and the gesture bar. `AppBar` handles the top inset; the bottom is still yours.
 - **Keyboard insets.** `resizeToAvoidBottomInset` plus scrollable content, or the field the user is typing in ends up behind the keyboard.
-- **Navigation from the platform.** `NavigationBar` for 3–5 top-level destinations on compact width, `NavigationRail` or `NavigationDrawer` on expanded. `Navigator` for hierarchy, `showModalBottomSheet` for a self-contained task. No custom global nav.
+- **Navigation from the platform.** `NavigationBar` for 3-5 top-level destinations on compact width, `NavigationRail` or `NavigationDrawer` on expanded. `Navigator` for hierarchy, `showModalBottomSheet` for a self-contained task. No custom global nav.
 - **System back always works.** `PopScope` with `onPopInvokedWithResult`, never `WillPopScope` (removed) and never a trap. Android predictive back animates the gesture only if you use `PopScope`.
 - **Bounded scrollables.** A `ListView` inside a `Column` throws unless it is inside `Expanded`/`Flexible` or carries `shrinkWrap: true`. `shrinkWrap` builds every child, so it is for short lists only.
 - **`Expanded` and `Flexible` express intent**; a hard `width`/`height` on a layout box usually hides a constraint problem.
@@ -35,7 +35,7 @@ Dark mode is a scheme you design, not an invert you enable. Build both with `Col
 ## Adaptivity
 
 - **Branch on `LayoutBuilder` constraints, never on `MediaQuery.of(context).size`.** The window size is not the space your widget was given. It reports the wrong number in split view, multi-window, inside a constrained parent, and on a foldable mid-fold. `constraints.maxWidth` is the truth.
-- **Breakpoints restructure, they do not scale.** Compact under 600, medium 600–840, expanded above. On expanded width the navigation bar becomes a rail, a list becomes list-plus-detail.
+- **Breakpoints restructure, they do not scale.** Compact under 600, medium 600-840, expanded above. On expanded width the navigation bar becomes a rail, a list becomes list-plus-detail.
 - **Orientation restructures too.** Landscape puts panes side by side. Lock orientation only when the task truly demands it.
 
 ## Typography and text scaling
@@ -51,12 +51,12 @@ Dark mode is a scheme you design, not an invert you enable. Build both with `Col
 - **Every interactive element is labeled.** `IconButton` takes `tooltip`, which doubles as the screen-reader label. A `GestureDetector` or `InkWell` with no `Text` in its subtree needs a `Semantics(label:, button: true)` wrapper.
 - **Decorative images get `excludeFromSemantics: true`**; meaningful ones get `semanticLabel`.
 - **Announce state changes**, not just labels: selected, expanded, loading. `Semantics(selected:)`, `SemanticsService.announce`.
-- **Honor reduced motion.** `MediaQuery.disableAnimationsOf(context)` — crossfade or cut instead of a large slide.
+- **Honor reduced motion.** `MediaQuery.disableAnimationsOf(context)`: crossfade or cut instead of a large slide.
 
 ## Motion
 
 - **Material motion patterns**: container transform for a card opening into a screen, shared axis for a step in a flow, fade-through for a lateral switch. `package:animations` implements them.
-- **Exponential ease-out**, `Curves.easeOutCubic` or `easeOutQuint`, 200–400ms. `Curves.bounceOut` and `Curves.elasticOut` overshoot on arrival and read as dated.
+- **Exponential ease-out**, `Curves.easeOutCubic` or `easeOutQuint`, 200-400ms. `Curves.bounceOut` and `Curves.elasticOut` overshoot on arrival and read as dated.
 - **Animate transform and opacity, not layout.** `AnimatedContainer` on `width` or `height` re-runs layout every frame; use `AnimatedSize` where the reflow is the point, otherwise `AnimatedScale`, `AnimatedSlide`, `FadeTransition`.
 - **One authored moment per screen**, not an entrance on every widget.
 
@@ -64,10 +64,10 @@ Dark mode is a scheme you design, not an invert you enable. Build both with `Col
 
 Every screen that loads anything needs four, and generated code ships one:
 
-- **Loading** — a skeleton that matches the shape of the real content, not a centered spinner on an empty page.
-- **Empty** — says what goes here and how to put the first one there. This is an onboarding surface, not an error.
-- **Error** — names the problem and the recovery, with a retry that actually retries.
-- **Offline** — Flutter apps run on phones that lose signal. Say what is stale and what is queued.
+- **Loading**: a skeleton that matches the shape of the real content, not a centered spinner on an empty page.
+- **Empty**: says what goes here and how to put the first one there. This is an onboarding surface, not an error.
+- **Error**: names the problem and the recovery, with a retry that actually retries.
+- **Offline**: Flutter apps run on phones that lose signal. Say what is stale and what is queued.
 
 `Image.network` without `errorBuilder` shows a broken box; without `loadingBuilder` it pops in.
 
@@ -80,4 +80,4 @@ Every screen that loads anything needs four, and generated code ships one:
 
 ## Verifying
 
-Screenshots come from a device or emulator, never a browser — see [verify.md](verify.md). Golden tests (`matchesGoldenFile`) are the regression net for everything a static rule cannot see.
+Screenshots come from a device or emulator, never a browser, see [verify.md](verify.md). Golden tests (`matchesGoldenFile`) are the regression net for everything a static rule cannot see.

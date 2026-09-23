@@ -15,7 +15,7 @@ From the repo, `make detect P=path/to/lib` does the same.
 
 ## What it reads
 
-Every `.dart` file under the paths given, skipping `.dart_tool/`, `build/`, `.g.dart` and `.freezed.dart` — generated code is not the author's design work.
+Every `.dart` file under the paths given, skipping `.dart_tool/`, `build/`, `.g.dart` and `.freezed.dart`: generated code is not the author's design work.
 
 Comments and string bodies are blanked before matching, so a widget name in a doc comment is not a finding. String literals are kept separately for the copy rules.
 
@@ -28,7 +28,7 @@ impeccable-flutter signals . --json   # for a flow to branch on
 
 Reports what the project already is: name, platform folders, whether `PRODUCT.md`, `DESIGN.md`, a theme file and a baseline exist, how many Dart files and how many hold a `Scaffold`, and the target it can infer.
 
-The target inference is the useful part. An Android TV app declares a `LEANBACK_LAUNCHER` intent in its manifest and nothing else does, so a TV project never has to be asked what it is. Android or iOS folders mean `phone`; web alone means `web`; anything else reports `unclear — ask`.
+The target inference is the useful part. An Android TV app declares a `LEANBACK_LAUNCHER` intent in its manifest and nothing else does, so a TV project never has to be asked what it is. Android or iOS folders mean `phone`; web alone means `web`; anything else reports `unclear, ask`.
 
 [init.md](init.md) branches on this. Nothing here mutates the project.
 
@@ -64,14 +64,14 @@ impeccable-flutter detect lib --design DESIGN.md
 impeccable-flutter detect lib --only design-system-color
 ```
 
-These rules are the only ones that ask about the project rather than about Flutter. A value they flag is not wrong — it is undeclared. Either add it to the document on purpose, or use the token that already covers the case.
+These rules are the only ones that ask about the project rather than about Flutter. A value they flag is undeclared rather than wrong. Either add it to the document on purpose, or use the token that already covers the case.
 
 ## pubspec.yaml
 
 Two rules read `pubspec.yaml` alongside the Dart source, because what they check is invisible everywhere else:
 
-- **`undeclared-font`** — a `fontFamily` the pubspec never declares. Flutter falls back to the platform face with no warning, so the app ships in Roboto and nothing reports it: not the analyzer, not a crash, not a log line.
-- **`undeclared-asset`** — an `Image.asset` or `AssetImage` path no entry under `flutter: assets:` covers. It throws when that widget builds, which is often a screen nobody opened before release.
+- **`undeclared-font`**: a `fontFamily` the pubspec never declares. Flutter falls back to the platform face with no warning, so the app ships in Roboto and nothing reports it: not the analyzer, not a crash, not a log line.
+- **`undeclared-asset`**: an `Image.asset` or `AssetImage` path no entry under `flutter: assets:` covers. It throws when that widget builds, which is often a screen nobody opened before release.
 
 The detector walks up from the scanned path to find the pubspec. A directory entry such as `assets/images/` covers files directly inside it and not deeper ones, which is what Flutter itself does. A path built at runtime is skipped rather than guessed at, and a package with no `flutter:` section declares no assets by design, so the asset rule stands down.
 
@@ -84,7 +84,7 @@ impeccable-flutter detect lib --fix --dry-run
 impeccable-flutter detect lib --fix
 ```
 
-The table is deliberately short — today it is `deprecated-with-opacity` alone, because `.withOpacity(x)` and `.withValues(alpha: x)` mean the same thing and the argument carries over untouched.
+The table is deliberately short, today it is `deprecated-with-opacity` alone, because `.withOpacity(x)` and `.withValues(alpha: x)` mean the same thing and the argument carries over untouched.
 
 Nothing else on the list qualifies. "Use a theme role instead of this literal" needs someone to decide *which* role. "Give this button a tooltip" needs someone to write the words. `WillPopScope` → `PopScope` changes the callback's signature and its semantics. A fix that needs a judgment call would make `--fix` quietly wrong at scale, which is worse than reporting the finding, so those stay manual.
 
@@ -104,7 +104,7 @@ impeccable-flutter detect lib --baseline .impeccable-baseline.json --write-basel
 impeccable-flutter detect lib --baseline .impeccable-baseline.json --fail-on error
 ```
 
-Entries key on the source line's text rather than its number, so an edit above a finding does not bring it back. A run against a baseline reports how many entries are stale; `--write-baseline` prunes them. Deleting an entry by hand is how a finding is opted back in — the detector never re-adds one.
+Entries key on the source line's text rather than its number, so an edit above a finding does not bring it back. A run against a baseline reports how many entries are stale; `--write-baseline` prunes them. Deleting an entry by hand is how a finding is opted back in. The detector never re-adds one.
 
 ## Output
 
@@ -114,9 +114,9 @@ Entries key on the source line's text rather than its number, so an edit above a
 
 Each finding carries a rule id, a severity, the file and line, the source line, and the measured value that tripped it.
 
-- **error** — a user hits this: an unlabeled control, a tap target under 48, a layout that throws, text under the contrast floor.
-- **warning** — a design defect: taste failures and theming that will break dark mode.
-- **advisory** — a judgment call, mostly copy. Read it, then decide.
+- **error**: a user hits this: an unlabeled control, a tap target under 48, a layout that throws, text under the contrast floor.
+- **warning**: a design defect: taste failures and theming that will break dark mode.
+- **advisory**: a judgment call, mostly copy. Read it, then decide.
 
 `--fail-on error` in CI is the useful setting. `--fail-on warning` will fail on a project that has not been through `theme` yet.
 
@@ -135,7 +135,7 @@ A comment on its own line waives the line below; a trailing comment waives its o
 
 The detector reads source, not pixels. It does not know whether text is occluded, whether a line runs too long at the width it actually got, whether an image is broken, or whether a layout overflows. Those come from [verify.md](verify.md) and from golden tests.
 
-It also cannot resolve a color computed at runtime. `low-contrast` fires only on literal pairs, so a clean run is not proof of contrast — it is proof that the pairs it could resolve were fine.
+It also cannot resolve a color computed at runtime. `low-contrast` fires only on literal pairs, so a clean run proves only that the pairs it could resolve were fine.
 
 ## When a rule is wrong
 

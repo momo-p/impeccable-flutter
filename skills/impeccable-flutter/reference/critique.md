@@ -1,6 +1,6 @@
 # critique
 
-A UX and visual review. Not a code audit — [audit.md](audit.md) is that. The question is whether the screen has a point of view and whether a user can act on it.
+A UX and visual review. Not a code audit, [audit.md](audit.md) is that. The question is whether the screen has a point of view and whether a user can act on it.
 
 ## 1. The design read
 
@@ -28,7 +28,7 @@ App screens sit lower on VARIANCE than a landing page and higher on DENSITY. A s
 
 ## 3. Heuristic scoring
 
-Score 0–4 each.
+Score 0-4 each.
 
 - **Hierarchy.** Does the eye land on the one thing that matters first? Is there a real type scale, or three sizes within four pixels of each other?
 - **Clarity.** Can a first-time user say what this screen is for within seconds? Do controls name their action?

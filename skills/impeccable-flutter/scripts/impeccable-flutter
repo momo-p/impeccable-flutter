@@ -4,31 +4,60 @@
 # otherwise. Nothing here needs the calling project to depend on the package,
 # which is the whole point — `dart run impeccable_flutter` only works inside
 # the detector's own package.
+#
+# The skill gets installed two ways, and both have to work:
+#   symlinked  ~/.claude/skills/impeccable-flutter -> the repo
+#   copied     <project>/.claude/skills/impeccable-flutter
+# A copy has no detector above it, so PATH is the only way it can find one.
 set -eu
 
-self="$0"
-# Resolve one level of symlink so `ln -s` onto PATH still finds the repo.
-if [ -L "$self" ]; then
-  link=$(readlink "$self")
-  case "$link" in
-    /*) self="$link" ;;
-    *) self="$(dirname "$self")/$link" ;;
-  esac
-fi
-here=$(CDPATH= cd -- "$(dirname -- "$self")" && pwd)
+resolve() {
+  # Resolve a path through symlinks, without readlink -f (not on macOS).
+  p=$1
+  while [ -L "$p" ]; do
+    link=$(readlink "$p")
+    case "$link" in
+      /*) p=$link ;;
+      *) p=$(dirname "$p")/$link ;;
+    esac
+  done
+  printf '%s\n' "$(CDPATH= cd -- "$(dirname -- "$p")" && pwd)/$(basename -- "$p")"
+}
+
+self=$(resolve "$0")
+here=$(dirname -- "$self")
 
 # skills/impeccable-flutter/scripts -> repo root
 root=$(CDPATH= cd -- "$here/../../.." && pwd)
 bin="$root/detector/build/impeccable-flutter"
+src="$root/detector/bin/impeccable_flutter.dart"
 
+# 1. A binary built in the checkout this skill lives in.
 if [ -x "$bin" ]; then
   exec "$bin" "$@"
 fi
 
-if command -v dart >/dev/null 2>&1; then
-  exec dart run "$root/detector/bin/impeccable_flutter.dart" "$@"
+# 2. One on PATH, as long as it is not this same script reached by symlink.
+if command -v impeccable-flutter >/dev/null 2>&1; then
+  onpath=$(resolve "$(command -v impeccable-flutter)")
+  if [ "$onpath" != "$self" ]; then
+    exec "$onpath" "$@"
+  fi
 fi
 
-echo "impeccable-flutter: no binary at $bin and no dart on PATH." >&2
-echo "Build one with:  make -C $root build" >&2
+# 3. The Dart source, when the checkout is present and dart is available.
+if [ -f "$src" ] && command -v dart >/dev/null 2>&1; then
+  exec dart run "$src" "$@"
+fi
+
+echo "impeccable-flutter: could not find the detector." >&2
+echo >&2
+echo "This skill is at $here." >&2
+if [ -f "$src" ]; then
+  echo "Build the binary:  make -C $root build" >&2
+else
+  echo "This looks like a copied skill, so there is no detector beside it." >&2
+  echo "In your impeccable-flutter checkout run:  make install" >&2
+  echo "which puts impeccable-flutter on PATH for every project." >&2
+fi
 exit 127
