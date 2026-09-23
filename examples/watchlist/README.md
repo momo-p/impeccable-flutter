@@ -27,7 +27,7 @@ The before version of the same screen:
 
 The TV screen, with the first tile focused:
 
-![The TV screen: two tiles inside an overscan margin, the focused one scaled up with a green border](docs/tv.png)
+![The TV screen: three poster tiles inside an overscan margin, the focused one scaled up with a green border](docs/tv.png)
 
 Every one is a real render captured from the running app. `tool/screenshots.sh` rebuilds and recaptures them. It needs Flutter and Chrome, and it is the only part of this repo that does.
 
@@ -43,7 +43,7 @@ flutter create --platforms=android,ios .
 flutter run
 ```
 
-Fonts and posters are committed, so it runs as it stands. Both faces are under the SIL Open Font License; `fonts/README.md` has the details. The posters are flat-colour placeholders, and `library_after.dart` handles a failed load with `errorBuilder`, so replacing or deleting them both render.
+Fonts and posters are committed, so it runs as it stands. Both faces are under the SIL Open Font License and the three posters are public domain, with sources in `fonts/README.md` and `assets/posters/README.md`. `library_after.dart` handles a failed load with `errorBuilder`, so swapping the images or deleting them both render.
 
 ## What the after version does differently
 

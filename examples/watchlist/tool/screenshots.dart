@@ -12,14 +12,19 @@ import 'package:watchlist/theme.dart';
 
 const _entries = [
   Entry(
-    title: 'Paris, Texas',
-    note: 'Saved last week. 2h 25m.',
-    poster: 'assets/posters/paris-texas.png',
+    title: 'The General',
+    note: 'Saved last week. 1h 18m.',
+    poster: 'assets/posters/the-general.png',
   ),
   Entry(
-    title: 'A Brighter Summer Day',
-    note: 'Four hours. Start it early.',
-    poster: 'assets/posters/brighter-summer-day.png',
+    title: 'His Girl Friday',
+    note: 'Added Tuesday. 1h 32m.',
+    poster: 'assets/posters/his-girl-friday.jpg',
+  ),
+  Entry(
+    title: 'Night of the Living Dead',
+    note: 'Half watched. 1h 36m.',
+    poster: 'assets/posters/night-of-the-living-dead.jpg',
   ),
 ];
 
