@@ -7,6 +7,8 @@ library;
 
 export 'src/baseline.dart';
 export 'src/colors.dart' show Rgb, contrastRatio, parseColor;
+export 'src/context.dart';
+export 'src/pubspec.dart';
 export 'src/design_system.dart';
 export 'src/finding.dart';
 export 'src/registry.dart';

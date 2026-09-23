@@ -66,6 +66,15 @@ impeccable-flutter detect lib --only design-system-color
 
 These rules are the only ones that ask about the project rather than about Flutter. A value they flag is not wrong — it is undeclared. Either add it to the document on purpose, or use the token that already covers the case.
 
+## pubspec.yaml
+
+Two rules read `pubspec.yaml` alongside the Dart source, because what they check is invisible everywhere else:
+
+- **`undeclared-font`** — a `fontFamily` the pubspec never declares. Flutter falls back to the platform face with no warning, so the app ships in Roboto and nothing reports it: not the analyzer, not a crash, not a log line.
+- **`undeclared-asset`** — an `Image.asset` or `AssetImage` path no entry under `flutter: assets:` covers. It throws when that widget builds, which is often a screen nobody opened before release.
+
+The detector walks up from the scanned path to find the pubspec. A directory entry such as `assets/images/` covers files directly inside it and not deeper ones, which is what Flutter itself does. A path built at runtime is skipped rather than guessed at, and a package with no `flutter:` section declares no assets by design, so the asset rule stands down.
+
 ## Baseline
 
 `--baseline <path>` suppresses findings recorded in that file and reports only new ones; `--write-baseline` records the current set. This is how the detector gets adopted on a codebase that was not built against it.

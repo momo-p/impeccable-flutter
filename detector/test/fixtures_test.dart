@@ -51,11 +51,24 @@ void main() {
         fired.addAll(scanFixture(name, target: target).map((f) => f.rule.id));
       }
     }
-    // The design-system rules need a project that declares one.
+    // The design-system and pubspec rules need a project that declares one.
     final project = File('test/fixtures/project/lib/off_system.dart');
-    fired.addAll(Scanner(design: DesignSystem.discover(project.path))
-        .scanSource(project.path, project.readAsStringSync())
-        .map((f) => f.rule.id));
+    const declares = '''
+name: fixture
+flutter:
+  assets:
+    - assets/logo.png
+  fonts:
+    - family: Söhne
+      fonts:
+        - asset: fonts/Soehne.otf
+''';
+    fired.addAll(Scanner(
+      context: ProjectContext(
+        design: DesignSystem.discover(project.path),
+        pubspec: Pubspec.parse(declares),
+      ),
+    ).scanSource(project.path, project.readAsStringSync()).map((f) => f.rule.id));
     final never = kRules.map((r) => r.id).toSet().difference(fired);
     expect(never, isEmpty,
         reason: 'these rules never fire on the fixture corpus, so nothing '

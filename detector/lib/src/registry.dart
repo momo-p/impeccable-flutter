@@ -15,6 +15,24 @@ import 'target.dart';
 /// here. They are not portable to static source; `verify.md` covers them with
 /// screenshots and golden tests instead.
 const List<Rule> kRules = [
+  // ---- pubspec.yaml conformance -------------------------------------------
+  Rule(
+    id: 'undeclared-font',
+    category: Category.platform,
+    section: 'Typography',
+    name: 'Font not declared in pubspec.yaml',
+    description:
+        'A fontFamily the pubspec never declares under flutter: fonts:. Flutter falls back to the platform face without a warning, so the app ships in Roboto and nothing reports it — not the analyzer, not a crash, not a log line.',
+  ),
+  Rule(
+    id: 'undeclared-asset',
+    category: Category.platform,
+    severity: Severity.error,
+    section: 'Edge cases',
+    name: 'Asset not declared in pubspec.yaml',
+    description:
+        'An asset path that no entry under flutter: assets: covers. The image throws when that widget builds, which is often a screen nobody opened before release.',
+  ),
   // ---- Web -----------------------------------------------------------------
   Rule(
     id: 'text-not-selectable',

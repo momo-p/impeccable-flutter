@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'context.dart';
 import 'design_system.dart';
+import 'pubspec.dart';
 import 'finding.dart';
 import 'registry.dart';
 import 'rules.dart';
@@ -14,19 +16,21 @@ class Scanner {
     Set<String>? only,
     Set<String>? ignore,
     Target target = Target.phone,
-    this.design,
+    DesignSystem? design,
+    Pubspec? pubspec,
+    ProjectContext? context,
   })  : only = only ?? const {},
         ignore = ignore ?? const {},
-        profile = Profile(target);
+        profile = Profile(target),
+        context = context ?? ProjectContext(design: design, pubspec: pubspec);
 
   final Set<String> only;
   final Set<String> ignore;
   final Profile profile;
 
-  /// The project's declared tokens. Null leaves the design-system rules
-  /// silent, which is the right default: a project with no DESIGN.md has
-  /// nothing for a value to be outside of.
-  final DesignSystem? design;
+  /// What is known about the surrounding project. A rule that needs a part
+  /// of it stands down when that part is absent rather than guessing.
+  final ProjectContext context;
 
   List<Finding> scanSource(String path, String text) {
     final src = DartSource.parse(path, text);
@@ -55,7 +59,7 @@ class Scanner {
     }
 
     for (final check in kChecks) {
-      check(src, profile, design, emit);
+      check(src, profile, context, emit);
     }
     out.sort((a, b) {
       final byLine = a.line.compareTo(b.line);

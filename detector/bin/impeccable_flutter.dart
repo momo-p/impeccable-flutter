@@ -151,9 +151,14 @@ void _detect(
   final design = designPath != null
       ? DesignSystem.parse(File(designPath).readAsStringSync(), path: designPath)
       : DesignSystem.discover(paths.first);
-  final all =
-      Scanner(only: only, ignore: ignore, target: target, design: design)
-          .scanPaths(paths);
+  final context =
+      ProjectContext(design: design, pubspec: Pubspec.discover(paths.first));
+  final all = Scanner(
+    only: only,
+    ignore: ignore,
+    target: target,
+    context: context,
+  ).scanPaths(paths);
 
   if (writeBaseline) {
     final path = baselinePath ?? '.impeccable-baseline.json';

@@ -14,15 +14,19 @@ class OffSystem extends StatelessWidget {
       child: ClipRRect(
         // The radius scale is 4, 8, 12.
         borderRadius: BorderRadius.circular(20),
-        child: const Text(
+        child: Column(children: [
+          // Declared nowhere under flutter: assets:.
+          Image.asset('assets/missing.png'),
+          const Text(
           'Off the system',
           style: TextStyle(
             // Neither declared face is Inter.
             fontFamily: 'Inter',
             // The ramp is 36, 24, 18, 16, 13.
             fontSize: 17,
+            ),
           ),
-        ),
+        ]),
       ),
     );
   }
