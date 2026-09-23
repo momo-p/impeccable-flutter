@@ -22,7 +22,8 @@ void main() {
       expect(
         findings.map((f) => '${f.line}: ${f.rule.id}').toList(),
         isEmpty,
-        reason: 'false positives on $target for a screen that follows the skill',
+        reason:
+            'false positives on $target for a screen that follows the skill',
       );
     }
   });
@@ -68,7 +69,9 @@ flutter:
         design: DesignSystem.discover(project.path),
         pubspec: Pubspec.parse(declares),
       ),
-    ).scanSource(project.path, project.readAsStringSync()).map((f) => f.rule.id));
+    )
+        .scanSource(project.path, project.readAsStringSync())
+        .map((f) => f.rule.id));
     final never = kRules.map((r) => r.id).toSet().difference(fired);
     expect(never, isEmpty,
         reason: 'these rules never fire on the fixture corpus, so nothing '
@@ -91,9 +94,7 @@ flutter:
   });
 
   test('the same TV fixture trips none of them as a phone build', () {
-    final fired = scanFixture('tv_screen.dart')
-        .map((f) => f.rule.id)
-        .toSet();
+    final fired = scanFixture('tv_screen.dart').map((f) => f.rule.id).toSet();
     expect(
         fired.intersection({
           'unreachable-by-dpad',
@@ -126,17 +127,5 @@ flutter:
         .scanSource(file.path, file.readAsStringSync());
     expect(without.length, lessThan(all.length));
     expect(without.any((f) => f.rule.id == 'hardcoded-color'), isFalse);
-  });
-  test('the sibling test-bed copy of the slop fixture has not drifted', () {
-    // slop_home.dart exists in both repos on purpose: here it is test data
-    // the offline, Flutter-free suite asserts on, and there it is a screen
-    // that runs. Nothing else keeps them equal, so this does.
-    final sibling =
-        File('../../flutter-tests/apps/slop_app/lib/screens/slop_home.dart');
-    if (!sibling.existsSync()) return; // the sibling checkout is optional
-    final mine = File('test/fixtures/slop_home.dart');
-    expect(sibling.readAsStringSync(), mine.readAsStringSync(),
-        reason: 'the two copies of slop_home.dart have diverged; '
-            'copy one over the other');
   });
 }

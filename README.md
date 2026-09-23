@@ -64,7 +64,7 @@ Alpha is ignored when matching colors, so a declared token used at 40% opacity s
 
 ```bash
 nix develop            # or direnv allow; any Dart 3.6+ SDK works without nix
-make test              # 241 tests across both packages
+make test              # 239 tests across both packages
 make rules             # the catalog
 make signals P=path/to/your/app   # what the project already is
 make detect P=path/to/your/app/lib
@@ -121,8 +121,6 @@ Then `/impeccable-flutter init` inside a Flutter project.
 
 `detector/test/fixtures/` is the corpus, and two tests over it matter more than the rest: the slop fixtures must trip **every** rule in the catalog, and the clean ones must produce **zero** findings. A rule that only fires in its own unit test does not survive contact with real widget code.
 
-`../flutter-tests` is a local scratch app for trying things against a real Flutter build. It is not part of the product.
-
 ## Re-extracting upstream
 
 ```bash
@@ -149,4 +147,3 @@ tool/upstream_registry.json  the 61 upstream rules
 
 Apache-2.0, matching [Impeccable](https://github.com/pbakaus/impeccable), which this derives from. The rule catalog in `tool/upstream_registry.json` is extracted from its Apache-2.0 source, so this project cannot be released under more permissive terms. `NOTICE` records what was derived and how it changed, as Apache-2.0 §4 requires.
 
-The `../flutter-tests` scratch app shares no upstream material and is MIT.

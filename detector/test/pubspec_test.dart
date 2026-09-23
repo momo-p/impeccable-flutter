@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:impeccable_flutter/impeccable_flutter.dart';
 import 'package:test/test.dart';
 
@@ -68,15 +66,13 @@ void main() {
 
   group('undeclared-font', () {
     test('fires on a family the pubspec never declares', () {
-      final ids = idsFor(
-          "Text('x', style: TextStyle(fontFamily: 'Satoshi'));",
+      final ids = idsFor("Text('x', style: TextStyle(fontFamily: 'Satoshi'));",
           pubspec: parsed);
       expect(ids, contains('undeclared-font'));
     });
 
     test('stays quiet on a declared family', () {
-      final ids = idsFor(
-          "Text('x', style: TextStyle(fontFamily: 'Fraunces'));",
+      final ids = idsFor("Text('x', style: TextStyle(fontFamily: 'Fraunces'));",
           pubspec: parsed);
       expect(ids, isNot(contains('undeclared-font')));
     });
@@ -106,8 +102,7 @@ void main() {
     });
 
     test('skips a path built at runtime', () {
-      expect(
-          idsFor(r"Image.asset('assets/$name.png');", pubspec: parsed),
+      expect(idsFor(r"Image.asset('assets/$name.png');", pubspec: parsed),
           isNot(contains('undeclared-asset')));
     });
 
@@ -122,12 +117,5 @@ void main() {
     final found = Pubspec.discover('lib/src');
     expect(found, isNotNull);
     expect(found!.path, endsWith('pubspec.yaml'));
-  });
-
-  test('a real project parses without throwing', () {
-    final file = File('../../flutter-tests/apps/slop_app/pubspec.yaml');
-    if (!file.existsSync()) return; // sibling checkout is optional
-    final p = Pubspec.parse(file.readAsStringSync(), path: file.path);
-    expect(p.declaresFlutter, isTrue);
   });
 }

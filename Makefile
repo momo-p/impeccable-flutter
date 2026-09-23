@@ -1,6 +1,6 @@
 DETECTOR := detector
 LINT := lint
-P ?= ../flutter-tests/apps/slop_app/lib
+P ?= detector/test/fixtures
 TARGET ?= phone
 
 .PHONY: all check test analyze detect rules signals registry build install clean
