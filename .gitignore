@@ -1,0 +1,19 @@
+# direnv + nix
+.direnv/
+result
+result-*
+
+# Dart build state
+.dart_tool/
+build/
+
+# The in-tree pub cache the flake's shellHook points PUB_CACHE at.
+.pub-cache/
+
+# Editor
+*.iml
+.idea/
+.vscode/
+
+# flake.lock and detector/pubspec.lock are committed on purpose: they are what
+# makes `nix develop` and `dart pub get` reproduce the same toolchain.

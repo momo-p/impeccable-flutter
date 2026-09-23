@@ -1,0 +1,36 @@
+impeccable-flutter
+Copyright 2026 momo-p
+
+This product includes software derived from Impeccable
+(https://github.com/pbakaus/impeccable), Copyright 2025 Paul Bakaus,
+licensed under the Apache License, Version 2.0.
+
+Derived material and how it was changed:
+
+  tool/upstream_registry.json
+      The rule catalog extracted verbatim from Impeccable's
+      crates/foundation/src/registry.rs, including rule ids, categories,
+      severities, names and descriptions. Unmodified content.
+
+  detector/lib/src/registry.dart
+      24 of the 36 rules carry over Impeccable rule definitions, each naming
+      its source id in the `portOf` field. Descriptions were rewritten for
+      Flutter widgets and Dart source; ids and the slop/quality categories
+      follow the originals. The 12 rules in the `platform` category are new.
+
+  detector/lib/src/finding.dart, detector/lib/src/colors.dart
+      The finding shape follows Impeccable's foundation::findings::Finding.
+      The contrast and luminance helpers follow foundation::color; the WCAG
+      formulas themselves are from the W3C specification.
+
+  skills/impeccable-flutter/SKILL.md and reference/
+      Structure, command vocabulary and parts of the guidance follow
+      Impeccable's skill. Rewritten for Flutter throughout; the live-browser
+      commands have no counterpart here and were replaced by
+      reference/verify.md.
+
+This product also includes ideas from Taste Skill
+(https://github.com/Leonxlnx/taste-skill), Copyright 2026 Leonxlnx,
+licensed under the MIT License. The design-read and three-dial framing in
+skills/impeccable-flutter/reference/critique.md follows that work; no source
+was copied.

@@ -1,0 +1,10 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  # The fixtures are Flutter source the detector reads as data. They import
+  # package:flutter, which this package deliberately does not depend on.
+  exclude:
+    - test/fixtures/**
+  language:
+    strict-casts: true
+    strict-raw-types: true

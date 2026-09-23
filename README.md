@@ -1,0 +1,92 @@
+# impeccable-flutter
+
+Design guidance and a deterministic detector for Flutter, ported from [pbakaus/impeccable](https://github.com/pbakaus/impeccable) (web) with the taste framing from [Leonxlnx/taste-skill](https://github.com/Leonxlnx/taste-skill).
+
+Two pieces:
+
+- **`skills/impeccable-flutter/`** — an agent skill: `SKILL.md` plus 16 reference playbooks covering the Flutter platform contract, theming, type, layout, color, motion, hardening, adaptivity, and a device-based verification loop.
+- **`detector/`** — a zero-dependency Dart CLI that runs 36 rules over Dart source. No model, no network, no running app.
+
+## Why a port rather than a config
+
+Upstream impeccable is a 125k-line Rust engine whose static path reads HTML and CSS and whose deep checks drive a real browser: computed styles, element picking, rendered geometry. Flutter paints to a canvas. None of that transfers.
+
+What does transfer is the rule catalog. `tool/extract_registry.pl` pulls all 61 rules straight out of upstream's `crates/foundation/src/registry.rs` into `tool/upstream_registry.json`, and every ported rule names the upstream id it carries in its `portOf` field — checked by a test, so the provenance cannot silently rot.
+
+## The rules
+
+| Category | Count | What it is |
+|---|---|---|
+| `slop` | 17 | Taste failures, all ported from upstream |
+| `quality` | 7 | Defects a user feels, all ported |
+| `platform` | 12 | Flutter, Material and HIG contracts — no upstream equivalent |
+
+Upstream rules needing rendered geometry (`text-occlusion`, `edge-flush-cards`, `broken-image`, `line-length`, `script-error`, `content-hidden-at-rest`, `first-viewport-column-overflow`) are deliberately absent. They are not portable to static source; `reference/verify.md` covers them with screenshots and golden tests instead.
+
+The 12 platform rules are the part that has no upstream counterpart, because a web page has no notch, no text scaler, no predictive back, and no 48dp floor: `hardcoded-color`, `hardcoded-text-style`, `missing-safe-area`, `tap-target-undersized`, `mediaquery-size-branch`, `missing-semantics`, `deprecated-with-opacity`, `unbounded-list`, `fixed-height-text-box`, `platform-control-mix`, `deprecated-will-pop-scope`, `network-image-unguarded`.
+
+## Use
+
+```bash
+nix develop            # or direnv allow
+make test              # 102 tests
+make rules             # the catalog
+make detect P=path/to/your/app/lib
+```
+
+Directly:
+
+```bash
+cd detector
+dart run bin/impeccable_flutter.dart detect lib --fail-on error
+dart run bin/impeccable_flutter.dart detect lib --only hardcoded-color --json
+```
+
+Waive a finding inline:
+
+```dart
+// impeccable-disable: hardcoded-color
+const brandStamp = Color(0xFF1B7F5C);
+```
+
+A comment on its own line waives the line below; a trailing one waives its own line. `// impeccable-disable-file` covers the file.
+
+## Install the skill
+
+```bash
+cp -r skills/impeccable-flutter ~/.claude/skills/
+```
+
+Then `/impeccable-flutter detect lib`, or let it trigger on Flutter design work.
+
+## Test bed
+
+`../flutter-tests` is a runnable Flutter app with the same screen built twice: `slop_home.dart` produces 32 findings across 25 rules, `clean_home.dart` produces none. `make -C ../flutter-tests detect` and `clean-detect` show the difference.
+
+The detector's own corpus is in `detector/test/fixtures/`, with two tests that matter more than the rest: the slop corpus must trip **every** rule in the catalog, and the clean fixture must produce **zero** findings. A rule that only fires in its own unit test does not survive contact with real widget code.
+
+## Re-extracting upstream
+
+```bash
+git clone --depth 1 https://github.com/pbakaus/impeccable /tmp/impeccable
+make registry SRC=/tmp/impeccable
+make test
+```
+
+If upstream renames or drops a rule, the provenance test fails and names it.
+
+## Layout
+
+```
+skills/impeccable-flutter/   SKILL.md + reference/*.md
+detector/lib/src/            source model, colors, registry, rules, scanner
+detector/test/               unit, rule, registry and fixture tests
+tool/extract_registry.pl     upstream Rust registry -> JSON
+tool/upstream_registry.json  the 61 upstream rules
+```
+
+## License
+
+Apache-2.0, matching [Impeccable](https://github.com/pbakaus/impeccable), which this derives from. The rule catalog in `tool/upstream_registry.json` is extracted from its Apache-2.0 source, so this project cannot be released under more permissive terms. `NOTICE` records what was derived and how it changed, as Apache-2.0 §4 requires.
+
+The `../flutter-tests` test bed shares no upstream material and is MIT.

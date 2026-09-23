@@ -1,0 +1,142 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:impeccable_flutter/impeccable_flutter.dart';
+
+const _usage = '''
+impeccable-flutter — deterministic design detector for Flutter source
+
+  impeccable-flutter detect [options] <paths…>
+  impeccable-flutter rules [--json]
+
+Options
+  --json              Machine-readable findings
+  --only <ids>        Comma-separated rule ids to run
+  --ignore <ids>      Comma-separated rule ids to skip
+  --fail-on <level>   Exit 1 at or above this severity: error|warning|advisory
+
+Waivers
+  // impeccable-disable[: rule-id,…]        waives the next line, or its own
+  // impeccable-disable-file                waives the whole file
+''';
+
+void main(List<String> argv) {
+  if (argv.isEmpty) {
+    stdout.write(_usage);
+    exit(64);
+  }
+
+  final command = argv.first;
+  final rest = argv.skip(1).toList();
+  final json = rest.remove('--json');
+
+  Set<String> listOpt(String name) {
+    final i = rest.indexOf(name);
+    if (i == -1 || i + 1 >= rest.length) return {};
+    final value = rest.removeAt(i + 1);
+    rest.removeAt(i);
+    return value.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toSet();
+  }
+
+  String? stringOpt(String name) {
+    final i = rest.indexOf(name);
+    if (i == -1 || i + 1 >= rest.length) return null;
+    final value = rest.removeAt(i + 1);
+    rest.removeAt(i);
+    return value;
+  }
+
+  switch (command) {
+    case 'rules':
+      _printRules(json);
+    case 'detect':
+      final only = listOpt('--only');
+      final ignore = listOpt('--ignore');
+      final failOn = stringOpt('--fail-on');
+      final paths = rest.where((a) => !a.startsWith('-')).toList();
+      if (paths.isEmpty) {
+        stderr.writeln('detect: no paths given');
+        exit(64);
+      }
+      _detect(paths, only: only, ignore: ignore, json: json, failOn: failOn);
+    default:
+      stdout.write(_usage);
+      exit(64);
+  }
+}
+
+void _printRules(bool asJson) {
+  if (asJson) {
+    stdout.writeln(const JsonEncoder.withIndent('  ').convert({
+      'count': kRules.length,
+      'rules': [
+        for (final r in kRules)
+          {
+            'id': r.id,
+            'category': r.category.name,
+            'severity': r.severity.name,
+            'name': r.name,
+            'description': r.description,
+            if (r.portOf != null) 'portOf': r.portOf,
+            if (r.section != null) 'section': r.section,
+          }
+      ],
+    }));
+    return;
+  }
+  for (final category in Category.values) {
+    final rows = kRules.where((r) => r.category == category);
+    if (rows.isEmpty) continue;
+    stdout.writeln('\n${category.name} (${rows.length})');
+    for (final r in rows) {
+      final port = r.portOf == null ? 'flutter-only' : 'ports ${r.portOf}';
+      stdout.writeln('  ${r.id.padRight(28)} ${r.severity.name.padRight(9)} $port');
+    }
+  }
+  stdout.writeln('\n${kRules.length} rules total.');
+}
+
+void _detect(
+  List<String> paths, {
+  required Set<String> only,
+  required Set<String> ignore,
+  required bool json,
+  String? failOn,
+}) {
+  final findings = Scanner(only: only, ignore: ignore).scanPaths(paths);
+
+  if (json) {
+    stdout.writeln(const JsonEncoder.withIndent('  ')
+        .convert({'findings': [for (final f in findings) f.toJson()]}));
+  } else if (findings.isEmpty) {
+    stdout.writeln('No findings.');
+  } else {
+    String? currentFile;
+    for (final f in findings) {
+      if (f.file != currentFile) {
+        currentFile = f.file;
+        stdout.writeln('\n$currentFile');
+      }
+      final detail = f.detail == null ? '' : '  (${f.detail})';
+      stdout.writeln('  ${f.line.toString().padLeft(4)}  '
+          '${f.rule.severity.name.padRight(9)}${f.rule.id.padRight(28)}'
+          '${f.rule.name}$detail');
+    }
+    final counts = severityCounts(findings);
+    stdout.writeln('\n${findings.length} findings  ·  '
+        '${counts['error']} error, ${counts['warning']} warning, '
+        '${counts['advisory']} advisory');
+  }
+
+  if (failOn != null) {
+    const order = ['advisory', 'warning', 'error'];
+    final floor = order.indexOf(failOn);
+    if (floor == -1) {
+      stderr.writeln('--fail-on: expected error|warning|advisory, got "$failOn"');
+      exit(64);
+    }
+    final tripped =
+        findings.any((f) => order.indexOf(f.rule.severity.name) >= floor);
+    if (tripped) exit(1);
+  }
+}
