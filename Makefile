@@ -1,4 +1,5 @@
 DETECTOR := detector
+LINT := lint
 P ?= ../flutter-tests/apps/slop_app/lib
 TARGET ?= phone
 
@@ -11,9 +12,11 @@ check: analyze test
 
 analyze:
 	cd $(DETECTOR) && dart analyze
+	cd $(LINT) && dart analyze
 
 test:
 	cd $(DETECTOR) && dart test
+	cd $(LINT) && dart test
 
 ## detect: run the detector over a Flutter project — make detect P=path/to/lib [TARGET=tv]
 detect:
@@ -50,4 +53,4 @@ registry:
 	@echo "extracted $$(grep -c '\"id\"' tool/upstream_registry.json) rules"
 
 clean:
-	rm -rf $(DETECTOR)/.dart_tool $(DETECTOR)/build
+	rm -rf 100 1 100DETECTOR)/.dart_tool 100 1 100DETECTOR)/build 100 1 100LINT)/.dart_tool

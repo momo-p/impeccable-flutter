@@ -42,6 +42,41 @@ jobs:
           make install PREFIX="$RUNNER_TEMP/bin"
           "$RUNNER_TEMP/bin/impeccable-flutter" detect detector/test/fixtures/clean_screen.dart
 
+
+      - name: Lint plugin — dependencies
+        working-directory: lint
+        run: dart pub get
+
+      - name: Lint plugin — analyze
+        working-directory: lint
+        run: dart analyze --fatal-infos
+
+      - name: Lint plugin — test
+        working-directory: lint
+        run: dart test
+
+      # The plugin is only useful if it actually reports in an IDE. The
+      # custom_lint CLI runs the same analysis server path, so a run here
+      # proves the wiring rather than just the code.
+      - name: Lint plugin — reports through custom_lint
+        run: |
+          mkdir -p "$RUNNER_TEMP/demo/lib"
+          cd "$RUNNER_TEMP/demo"
+          cat > pubspec.yaml <<'EOF'
+          name: lintdemo
+          environment:
+            sdk: ^3.6.0
+          dev_dependencies:
+            custom_lint: ^0.7.0
+            impeccable_flutter_lint:
+              path: PLUGIN_PATH
+          EOF
+          sed -i "s|PLUGIN_PATH|$GITHUB_WORKSPACE/lint|" pubspec.yaml
+          printf 'analyzer:\n  plugins:\n    - custom_lint\n' > analysis_options.yaml
+          printf 'final a = base.withOpacity(0.5);\n' > lib/screen.dart
+          dart pub get
+          dart run custom_lint | tee out.txt
+          grep -q 'deprecated-with-opacity' out.txt
       # Annotations land on the diff rather than in the log. The slop fixtures
       # are meant to trip rules, so this step reports without failing.
       - name: Annotate the fixture findings

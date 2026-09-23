@@ -18,3 +18,4 @@ detector/build/
 
 # flake.lock and detector/pubspec.lock are committed on purpose: they are what
 # makes `nix develop` and `dart pub get` reproduce the same toolchain.
+lint/.dart_tool/

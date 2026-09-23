@@ -62,7 +62,7 @@ Alpha is ignored when matching colors, so a declared token used at 40% opacity s
 
 ```bash
 nix develop            # or direnv allow
-make test              # 233 tests
+make test              # 240 tests across both packages
 make rules             # the catalog
 make signals P=path/to/your/app   # what the project already is
 make detect P=path/to/your/app/lib
@@ -98,6 +98,40 @@ impeccable-flutter detect lib --baseline .impeccable-baseline.json --fail-on err
 Entries key on rule id, file, and the source line's text — not the line number — so editing above a finding does not resurrect it. When a finding is fixed, the next run says how many entries are stale and `--write-baseline` prunes them. Nothing re-adds an entry on its own; deleting one by hand is how you opt a finding back in.
 
 In CI, `--format github` prints annotations that land on the diff instead of in the log.
+
+## In the editor
+
+`lint/` is a [custom_lint](https://pub.dev/packages/custom_lint) plugin that surfaces the same findings as squiggles in VS Code and IntelliJ. The detector stays dependency-free; this package is the only thing that touches the analyzer.
+
+In the Flutter project you want checked:
+
+```yaml
+# pubspec.yaml
+dev_dependencies:
+  custom_lint: ^0.7.0
+  impeccable_flutter_lint:
+    path: ../impeccable-flutter/lint
+```
+
+```yaml
+# analysis_options.yaml
+analyzer:
+  plugins:
+    - custom_lint
+```
+
+Then `dart run custom_lint` on the command line, or just open the project.
+
+**The target is inferred, not configured.** An Android TV app declares a `LEANBACK_LAUNCHER` intent and nothing else does, so a TV project gets its focus rules in the editor without anyone remembering to set a flag. Override it where the inference is wrong:
+
+```yaml
+custom_lint:
+  rules:
+    - impeccable_target:
+        target: tv
+```
+
+Rule names match the CLI's, so `// ignore: tiny-text` and the detector's own `// impeccable-disable` read the same way.
 
 ## Install
 
@@ -140,6 +174,7 @@ If upstream renames or drops a rule, the provenance test fails and names it.
 ```
 skills/impeccable-flutter/   SKILL.md + reference/*.md
 detector/lib/src/            source model, colors, registry, rules, scanner
+lint/                        custom_lint plugin for IDE diagnostics
 detector/test/               unit, rule, registry and fixture tests
 tool/extract_registry.pl     upstream Rust registry -> JSON
 tool/upstream_registry.json  the 61 upstream rules

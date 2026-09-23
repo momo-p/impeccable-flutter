@@ -10,6 +10,7 @@
 - Design-system conformance against the project's own `DESIGN.md`, and font and asset conformance against `pubspec.yaml`.
 - `signals` reports what a project already is, including inferring a TV target from a `LEANBACK_LAUNCHER` intent.
 - `--format github` for CI annotations; `--json` for everything else.
+- A custom_lint plugin in `lint/` surfaces the same findings in VS Code and IntelliJ, inferring the target from the project rather than asking for configuration.
 - Ships as a standalone binary with a launcher, so no calling project needs a pubspec entry or a Dart SDK.
 
 ### Skill
