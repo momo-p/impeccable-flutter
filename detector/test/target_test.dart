@@ -130,4 +130,49 @@ Scaffold(
       }
     });
   });
+  group('web rules', () {
+    const unselectable = '''
+Scaffold(body: ListView(children: const [
+  Text('Everything you put here stays on your own machine and syncs only when asked.'),
+]));''';
+
+    test('paragraph copy with no SelectionArea is flagged on web', () {
+      expect(idsFor(unselectable, Target.web), contains('text-not-selectable'));
+    });
+
+    test('a SelectionArea satisfies it', () {
+      const source = '''
+SelectionArea(child: ListView(children: const [
+  Text('Everything you put here stays on your own machine and syncs only when asked.'),
+]));''';
+      expect(idsFor(source, Target.web), isNot(contains('text-not-selectable')));
+    });
+
+    test('a button label is not paragraph copy', () {
+      const source = "FilledButton(onPressed: f, child: const Text('Turn on sync'));";
+      expect(idsFor(source, Target.web), isNot(contains('text-not-selectable')));
+    });
+
+    test('runApp without a path url strategy is flagged', () {
+      expect(idsFor('void main() => runApp(const App());', Target.web),
+          contains('hash-url-strategy'));
+    });
+
+    test('usePathUrlStrategy satisfies it', () {
+      const source = '''
+void main() {
+  usePathUrlStrategy();
+  runApp(const App());
+}''';
+      expect(idsFor(source, Target.web), isNot(contains('hash-url-strategy')));
+    });
+
+    test('neither applies off the web', () {
+      for (final target in [Target.phone, Target.tablet, Target.tv]) {
+        final ids = idsFor('void main() => runApp(const App());$unselectable', target);
+        expect(ids, isNot(contains('hash-url-strategy')), reason: '$target');
+        expect(ids, isNot(contains('text-not-selectable')), reason: '$target');
+      }
+    });
+  });
 }

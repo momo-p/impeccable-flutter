@@ -15,6 +15,25 @@ import 'target.dart';
 /// here. They are not portable to static source; `verify.md` covers them with
 /// screenshots and golden tests instead.
 const List<Rule> kRules = [
+  // ---- Web -----------------------------------------------------------------
+  Rule(
+    id: 'text-not-selectable',
+    category: Category.platform,
+    targets: {Target.web},
+    section: 'Platform',
+    name: 'Content text cannot be selected',
+    description:
+        'Flutter paints text to a canvas, so on the web it is not selectable unless a SelectionArea wraps it. Copying a paragraph is something every other page on the web allows, and its absence reads as a broken page rather than a design choice.',
+  ),
+  Rule(
+    id: 'hash-url-strategy',
+    category: Category.platform,
+    targets: {Target.web},
+    section: 'Platform',
+    name: 'URLs left on the hash strategy',
+    description:
+        'Without usePathUrlStrategy() a Flutter web app serves every route under a # fragment. Those URLs do not share cleanly, and search engines treat them as one page.',
+  ),
   // ---- Design-system conformance (silent without a DESIGN.md) -------------
   Rule(
     id: 'design-system-color',

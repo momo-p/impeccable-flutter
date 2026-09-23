@@ -5,7 +5,7 @@ Design guidance and a deterministic detector for Flutter, ported from [pbakaus/i
 Two pieces:
 
 - **`skills/impeccable-flutter/`** — an agent skill: `SKILL.md` plus 16 reference playbooks covering the Flutter platform contract, theming, type, layout, color, motion, hardening, adaptivity, and a device-based verification loop.
-- **`detector/`** — a zero-dependency Dart CLI that runs 63 rules over Dart source across four target surfaces (phone, tablet, TV, web). No model, no network, no running app.
+- **`detector/`** — a zero-dependency Dart CLI that runs 65 rules over Dart source across four target surfaces (phone, tablet, TV, web). No model, no network, no running app.
 
 ## Why a port rather than a config
 
@@ -19,7 +19,7 @@ What does transfer is the rule catalog. `tool/extract_registry.pl` pulls all 61 
 |---|---|---|
 | `slop` | 31 | Taste failures, all ported from upstream |
 | `quality` | 15 | Defects a user feels, all ported |
-| `platform` | 17 | Flutter, Material, HIG and TV focus contracts — no upstream equivalent |
+| `platform` | 19 | Flutter, Material, HIG, TV focus and web contracts — no upstream equivalent |
 
 ## What is not ported, and why
 
@@ -62,7 +62,7 @@ Alpha is ignored when matching colors, so a declared token used at 40% opacity s
 
 ```bash
 nix develop            # or direnv allow
-make test              # 176 tests
+make test              # 189 tests
 make rules             # the catalog
 make detect P=path/to/your/app/lib
 make detect P=path/to/your/app/lib TARGET=tv
@@ -84,6 +84,19 @@ const brandStamp = Color(0xFF1B7F5C);
 ```
 
 A comment on its own line waives the line below; a trailing one waives its own line. `// impeccable-disable-file` covers the file.
+
+## Adopting on an existing app
+
+A first run on a real codebase reports a lot, `--fail-on` can never be switched on, and the tool gets ignored. A baseline freezes what is already there so CI can block *new* findings from day one.
+
+```bash
+impeccable-flutter detect lib --baseline .impeccable-baseline.json --write-baseline
+impeccable-flutter detect lib --baseline .impeccable-baseline.json --fail-on error
+```
+
+Entries key on rule id, file, and the source line's text — not the line number — so editing above a finding does not resurrect it. When a finding is fixed, the next run says how many entries are stale and `--write-baseline` prunes them. Nothing re-adds an entry on its own; deleting one by hand is how you opt a finding back in.
+
+In CI, `--format github` prints annotations that land on the diff instead of in the log.
 
 ## Install
 
@@ -107,7 +120,7 @@ The skill calls the launcher at `<skill-dir>/scripts/impeccable-flutter`, which 
 
 ## Test bed
 
-`../flutter-tests` is a runnable Flutter app with the same screen built twice: `slop_home.dart` produces 32 findings across 25 rules, `clean_home.dart` produces none. `make -C ../flutter-tests detect` and `clean-detect` show the difference.
+`../flutter-tests` is a runnable Flutter app holding four screens: two phone (`slop_home.dart`, 32 findings across 25 rules, and `clean_home.dart`, none) and two TV (`tv_home.dart`, 6 findings including two focus errors under `--target tv`, and `tv_clean_home.dart`, none). `make -C ../flutter-tests detect`, `clean-detect`, `tv-detect` and `tv-clean-detect` show each pair; `make run` switches between all four in the app.
 
 The detector's own corpus is in `detector/test/fixtures/`, with two tests that matter more than the rest: the slop corpus must trip **every** rule in the catalog, and the clean fixture must produce **zero** findings. A rule that only fires in its own unit test does not survive contact with real widget code.
 

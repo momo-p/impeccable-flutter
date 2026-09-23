@@ -1,0 +1,48 @@
+name: ci
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+jobs:
+  detector:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Fetch dependencies
+        working-directory: detector
+        run: dart pub get
+
+      - name: Analyze
+        working-directory: detector
+        run: dart analyze --fatal-infos
+
+      - name: Test
+        working-directory: detector
+        run: dart test
+
+      # The launcher is what the skill tells an agent to run, so a build that
+      # never produces it would ship the same defect twice.
+      - name: Build the standalone binary
+        run: make build
+
+      - name: The binary runs without the Dart package
+        run: |
+          ./detector/build/impeccable-flutter rules > /dev/null
+          ./detector/build/impeccable-flutter detect detector/test/fixtures/clean_screen.dart --fail-on advisory
+
+      - name: The launcher resolves through a symlink
+        run: |
+          make install PREFIX="$RUNNER_TEMP/bin"
+          "$RUNNER_TEMP/bin/impeccable-flutter" detect detector/test/fixtures/clean_screen.dart
+
+      # Annotations land on the diff rather than in the log. The slop fixtures
+      # are meant to trip rules, so this step reports without failing.
+      - name: Annotate the fixture findings
+        run: ./detector/build/impeccable-flutter detect detector/test/fixtures --format github || true

@@ -46,6 +46,7 @@ void main() {
         'slop_settings.dart',
         'tv_screen.dart',
         'slop_marketing.dart',
+        'web_screen.dart',
       ]) {
         fired.addAll(scanFixture(name, target: target).map((f) => f.rule.id));
       }

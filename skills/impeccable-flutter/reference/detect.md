@@ -53,6 +53,21 @@ impeccable-flutter detect lib --only design-system-color
 
 These rules are the only ones that ask about the project rather than about Flutter. A value they flag is not wrong — it is undeclared. Either add it to the document on purpose, or use the token that already covers the case.
 
+## Baseline
+
+`--baseline <path>` suppresses findings recorded in that file and reports only new ones; `--write-baseline` records the current set. This is how the detector gets adopted on a codebase that was not built against it.
+
+```bash
+impeccable-flutter detect lib --baseline .impeccable-baseline.json --write-baseline
+impeccable-flutter detect lib --baseline .impeccable-baseline.json --fail-on error
+```
+
+Entries key on the source line's text rather than its number, so an edit above a finding does not bring it back. A run against a baseline reports how many entries are stale; `--write-baseline` prunes them. Deleting an entry by hand is how a finding is opted back in — the detector never re-adds one.
+
+## Output
+
+`--json` gives machine-readable findings. `--format github` prints annotations that GitHub pins to the diff, which is the useful form in CI.
+
 ## Reading the output
 
 Each finding carries a rule id, a severity, the file and line, the source line, and the measured value that tripped it.

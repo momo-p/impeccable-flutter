@@ -5,6 +5,7 @@
 /// platform rules the web engine has no place for. See `lib/src/registry.dart`.
 library;
 
+export 'src/baseline.dart';
 export 'src/colors.dart' show Rgb, contrastRatio, parseColor;
 export 'src/design_system.dart';
 export 'src/finding.dart';

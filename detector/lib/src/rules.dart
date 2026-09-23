@@ -77,6 +77,7 @@ final List<RuleCheck> kChecks = [
   _imageHoverTransform,
   _repeatedContainerText,
   _designSystemRules,
+  _webRules,
 ];
 
 // --------------------------------------------------------------------------
@@ -996,5 +997,44 @@ void _designSystemRules(
       emit('design-system-radius', r.line,
           detail: 'radius $value is not in $where');
     }
+  }
+}
+
+// --------------------------------------------------------------------------
+// Web
+//
+// Flutter on the web inherits expectations the framework does not meet by
+// default. These are the two that users notice within seconds.
+// --------------------------------------------------------------------------
+
+void _webRules(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
+  if (profile.target != Target.web) return;
+
+  // Selection: a screen with real running copy and no SelectionArea anywhere.
+  if (!src.calls.any((c) =>
+      c.name == 'SelectionArea' || c.name == 'SelectableText' ||
+      c.name == 'SelectableRegion')) {
+    final prose = src.calls.where((c) {
+      if (c.name != 'Text') return false;
+      final lit = src.strings.firstWhere(
+        (s) => s.offset > c.start && s.offset < c.end,
+        orElse: () => const StringLiteral(-1, ''),
+      );
+      // Running copy, not a button label: several words.
+      return lit.offset != -1 && lit.value.trim().split(RegExp(r'\s+')).length >= 6;
+    }).toList();
+    if (prose.isNotEmpty) {
+      emit('text-not-selectable', prose.first.line,
+          detail: '${prose.length} paragraph-length Text widgets, no SelectionArea');
+    }
+  }
+
+  // URL strategy: only meaningful in the file that boots the app.
+  final bootstraps = RegExp(r'\brunApp\s*\(').firstMatch(src.masked);
+  if (bootstraps != null &&
+      !RegExp(r'usePathUrlStrategy\s*\(|setUrlStrategy\s*\(')
+          .hasMatch(src.masked)) {
+    emit('hash-url-strategy', src.lineAt(bootstraps.start),
+        detail: 'runApp with no usePathUrlStrategy()');
   }
 }

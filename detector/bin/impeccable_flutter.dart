@@ -11,8 +11,11 @@ impeccable-flutter — deterministic design detector for Flutter source
 
 Options
   --json              Machine-readable findings
+  --format <kind>     text (default) or github (inline PR annotations)
   --only <ids>        Comma-separated rule ids to run
   --ignore <ids>      Comma-separated rule ids to skip
+  --baseline <path>   Suppress findings recorded in this file; report only new ones
+  --write-baseline    Record every current finding to --baseline and exit 0
   --design <path>     DESIGN.md to check against (default: discovered by
                       walking up from the scanned path)
   --target <surface>  phone (default) | tablet | tv | web — changes which
@@ -57,6 +60,13 @@ void main(List<String> argv) {
       final only = listOpt('--only');
       final ignore = listOpt('--ignore');
       final failOn = stringOpt('--fail-on');
+      final format = stringOpt('--format') ?? 'text';
+      if (format != 'text' && format != 'github') {
+        stderr.writeln('--format: expected text or github, got "$format"');
+        exit(64);
+      }
+      final baselinePath = stringOpt('--baseline');
+      final writeBaseline = rest.remove('--write-baseline');
       final designPath = stringOpt('--design');
       final targetName = stringOpt('--target') ?? 'phone';
       final target = Target.parse(targetName);
@@ -75,7 +85,10 @@ void main(List<String> argv) {
           json: json,
           failOn: failOn,
           target: target,
-          designPath: designPath);
+          designPath: designPath,
+          baselinePath: baselinePath,
+          writeBaseline: writeBaseline,
+          format: format);
     default:
       stdout.write(_usage);
       exit(64);
@@ -127,17 +140,58 @@ void _detect(
   required Target target,
   String? failOn,
   String? designPath,
+  String? baselinePath,
+  bool writeBaseline = false,
+  String format = 'text',
 }) {
   final design = designPath != null
       ? DesignSystem.parse(File(designPath).readAsStringSync(), path: designPath)
       : DesignSystem.discover(paths.first);
-  final findings =
+  final all =
       Scanner(only: only, ignore: ignore, target: target, design: design)
           .scanPaths(paths);
+
+  if (writeBaseline) {
+    final path = baselinePath ?? '.impeccable-baseline.json';
+    Baseline.fromFindings(all).save(path);
+    stdout.writeln('Recorded ${all.length} findings to $path.');
+    stdout.writeln('Delete an entry once it is fixed; nothing re-adds it.');
+    return;
+  }
+
+  var findings = all;
+  if (baselinePath != null) {
+    if (!File(baselinePath).existsSync()) {
+      stderr.writeln('--baseline: $baselinePath does not exist. '
+          'Create it with --write-baseline.');
+      exit(66);
+    }
+    final baseline = Baseline.load(baselinePath);
+    findings = baseline.filter(all);
+    final stale = baseline.staleAgainst(all);
+    if (stale.isNotEmpty && !json) {
+      stdout.writeln('${stale.length} baseline '
+          '${stale.length == 1 ? "entry no longer occurs" : "entries no longer occur"}; '
+          're-run with --write-baseline to prune.');
+    }
+  }
 
   if (json) {
     stdout.writeln(const JsonEncoder.withIndent('  ')
         .convert({'findings': [for (final f in findings) f.toJson()]}));
+  } else if (format == 'github') {
+    // GitHub reads these off stdout and pins them to the diff.
+    for (final f in findings) {
+      final level = f.rule.severity == Severity.error ? 'error' : 'warning';
+      final detail = f.detail == null ? '' : ' (${f.detail})';
+      final message = '${f.rule.name}$detail — ${f.rule.description}'
+          .replaceAll('\n', ' ')
+          .replaceAll('%', '%25')
+          .replaceAll('\r', '');
+      stdout.writeln('::$level file=${f.file},line=${f.line},'
+          'title=impeccable-flutter ${f.rule.id}::$message');
+    }
+    stdout.writeln('${findings.length} findings.');
   } else if (findings.isEmpty) {
     stdout.writeln('No findings.');
   } else {
