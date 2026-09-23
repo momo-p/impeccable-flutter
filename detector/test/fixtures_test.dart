@@ -127,4 +127,16 @@ flutter:
     expect(without.length, lessThan(all.length));
     expect(without.any((f) => f.rule.id == 'hardcoded-color'), isFalse);
   });
+  test('the sibling test-bed copy of the slop fixture has not drifted', () {
+    // slop_home.dart exists in both repos on purpose: here it is test data
+    // the offline, Flutter-free suite asserts on, and there it is a screen
+    // that runs. Nothing else keeps them equal, so this does.
+    final sibling =
+        File('../../flutter-tests/apps/slop_app/lib/screens/slop_home.dart');
+    if (!sibling.existsSync()) return; // the sibling checkout is optional
+    final mine = File('test/fixtures/slop_home.dart');
+    expect(sibling.readAsStringSync(), mine.readAsStringSync(),
+        reason: 'the two copies of slop_home.dart have diverged; '
+            'copy one over the other');
+  });
 }
