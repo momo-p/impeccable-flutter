@@ -3,7 +3,7 @@ LINT := lint
 P ?= detector/test/fixtures
 TARGET ?= phone
 
-.PHONY: all check test analyze detect rules signals registry build install clean
+.PHONY: all check test analyze detect rules signals example registry build install clean
 
 all: check
 
@@ -25,6 +25,17 @@ detect:
 ## signals: report what a project already is — make signals P=path/to/app
 signals:
 	cd $(DETECTOR) && dart run bin/impeccable_flutter.dart signals $(abspath $(P))
+
+## example: run the detector over examples/watchlist
+example: build
+	@echo "--- before (phone): expect findings ---"
+	@$(DETECTOR)/build/impeccable-flutter detect examples/watchlist/lib/screens/library_before.dart | tail -2
+	@echo "--- after (phone): expect none ---"
+	@$(DETECTOR)/build/impeccable-flutter detect examples/watchlist/lib/screens/library_after.dart
+	@echo "--- tv: expect none ---"
+	@$(DETECTOR)/build/impeccable-flutter detect examples/watchlist/lib/screens/library_tv.dart --target tv
+	@echo "--- theme: expect none ---"
+	@$(DETECTOR)/build/impeccable-flutter detect examples/watchlist/lib/theme.dart
 
 ## build: compile the standalone detector binary (no Dart needed to run it)
 build:

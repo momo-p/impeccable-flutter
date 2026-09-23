@@ -80,7 +80,7 @@ From there the usual order is:
 /impeccable-flutter critique    # does the screen have a point of view
 ```
 
-Run `theme` first on a greenfield project and `document` first on an existing one. `init` will say which.
+Run `theme` first on a greenfield project and `document` first on an existing one. `init` will say which. [NEW-PROJECT.md](NEW-PROJECT.md) walks the greenfield path step by step.
 
 ## 4. Adopt on an existing app
 

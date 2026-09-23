@@ -64,7 +64,7 @@ Alpha is ignored when matching colors, so a declared token used at 40% opacity s
 
 ```bash
 nix develop            # or direnv allow; any Dart 3.6+ SDK works without nix
-make test              # 239 tests across both packages
+make test              # 247 tests across both packages
 make rules             # the catalog
 make signals P=path/to/your/app   # what the project already is
 make detect P=path/to/your/app/lib
@@ -106,7 +106,7 @@ Rule names match the CLI's, so `// ignore: tiny-text` and the detector's own `//
 
 ## Install
 
-[GETTING-STARTED.md](GETTING-STARTED.md) covers the skill in personal or project scope, the detector build, starting a project, adoption and editor diagnostics. The short version:
+[GETTING-STARTED.md](GETTING-STARTED.md) covers the skill in personal or project scope, the detector build, adoption and editor diagnostics. [NEW-PROJECT.md](NEW-PROJECT.md) walks a new app from `flutter create` to a first screen that passes. The short version:
 
 ```bash
 make build      # compile detector/build/impeccable-flutter
@@ -116,6 +116,18 @@ ln -s "$PWD/skills/impeccable-flutter" ~/.claude/skills/impeccable-flutter
 ```
 
 Then `/impeccable-flutter init` inside a Flutter project.
+
+## Example
+
+`examples/watchlist/` is the same screen built twice, plus the TV version.
+
+```bash
+make example
+```
+
+`library_before.dart` reports 47 findings, `library_after.dart` and `library_tv.dart` report none, and `examples/watchlist/README.md` explains each decision and which playbook it comes from. A test pins all of it, so an "after" screen that starts tripping a rule fails the suite.
+
+It is source rather than a built app, since this repo has no Flutter toolchain. Run `flutter create --platforms=android,ios .` inside it to generate the platform folders.
 
 ## Fixtures
 
@@ -134,7 +146,9 @@ If upstream renames or drops a rule, the provenance test fails and names it.
 ## Layout
 
 ```
-GETTING-STARTED.md           installing and starting a project
+GETTING-STARTED.md           installing the skill and the detector
+NEW-PROJECT.md               a new app from flutter create to a passing screen
+examples/watchlist/          the same screen before and after, plus TV
 skills/impeccable-flutter/   SKILL.md + reference/*.md + scripts/
 detector/lib/src/            source model, colors, registry, rules, scanner
 lint/                        custom_lint plugin for IDE diagnostics

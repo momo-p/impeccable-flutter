@@ -1,0 +1,25 @@
+name: watchlist
+description: Example app for impeccable-flutter. Source only; see README.md.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/posters/
+  fonts:
+    - family: Fraunces
+      fonts:
+        - asset: fonts/Fraunces.ttf
+    - family: Söhne
+      fonts:
+        - asset: fonts/Soehne-Buch.otf
+        - asset: fonts/Soehne-Halbfett.otf
+          weight: 600

@@ -43,6 +43,9 @@ jobs:
           "$RUNNER_TEMP/bin/impeccable-flutter" detect detector/test/fixtures/clean_screen.dart
 
 
+
+      - name: The example still holds
+        run: make example
       - name: Lint plugin — dependencies
         working-directory: lint
         run: dart pub get
