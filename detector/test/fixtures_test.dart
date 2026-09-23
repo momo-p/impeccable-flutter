@@ -41,10 +41,20 @@ void main() {
     // union across targets rather than one phone-shaped pass.
     final fired = <String>{};
     for (final target in Target.values) {
-      for (final name in ['slop_home.dart', 'slop_settings.dart', 'tv_screen.dart', 'slop_marketing.dart']) {
+      for (final name in [
+        'slop_home.dart',
+        'slop_settings.dart',
+        'tv_screen.dart',
+        'slop_marketing.dart',
+      ]) {
         fired.addAll(scanFixture(name, target: target).map((f) => f.rule.id));
       }
     }
+    // The design-system rules need a project that declares one.
+    final project = File('test/fixtures/project/lib/off_system.dart');
+    fired.addAll(Scanner(design: DesignSystem.discover(project.path))
+        .scanSource(project.path, project.readAsStringSync())
+        .map((f) => f.rule.id));
     final never = kRules.map((r) => r.id).toSet().difference(fired);
     expect(never, isEmpty,
         reason: 'these rules never fire on the fixture corpus, so nothing '

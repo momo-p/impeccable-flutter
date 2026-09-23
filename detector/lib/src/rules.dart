@@ -1,8 +1,9 @@
 import 'colors.dart';
+import 'design_system.dart';
 import 'target.dart';
 import 'source.dart';
 
-typedef RuleCheck = void Function(DartSource src, Profile profile, Emit emit);
+typedef RuleCheck = void Function(DartSource src, Profile profile, DesignSystem? design, Emit emit);
 typedef Emit = void Function(String ruleId, int line, {String? detail, String? snippet});
 
 /// Widget names that make their subtree tappable.
@@ -75,13 +76,14 @@ final List<RuleCheck> kChecks = [
   _radialSpotlightGlow,
   _imageHoverTransform,
   _repeatedContainerText,
+  _designSystemRules,
 ];
 
 // --------------------------------------------------------------------------
 // Ported slop
 // --------------------------------------------------------------------------
 
-void _overusedFont(DartSource src, Profile profile, Emit emit) {
+void _overusedFont(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   final re = RegExp(
       r"""(?:fontFamily\s*:\s*['"]([^'"]+)['"])|(?:GoogleFonts\.([a-zA-Z]+)\s*\()""");
   // fontFamily values live in string literals, which `masked` blanks, so this
@@ -93,7 +95,7 @@ void _overusedFont(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _gradientText(DartSource src, Profile profile, Emit emit) {
+void _gradientText(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   for (final mask in src.calls.where((c) => c.name == 'ShaderMask')) {
     final inner = src.calls.where(mask.contains);
     if (inner.any((c) => c.name == 'Text') &&
@@ -103,7 +105,7 @@ void _gradientText(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _aiColorPalette(DartSource src, Profile profile, Emit emit) {
+void _aiColorPalette(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   final hits = <int>[];
   for (final c in findColors(src.masked)) {
     if (isAiPaletteHue(c.rgb)) hits.add(c.offset);
@@ -115,7 +117,7 @@ void _aiColorPalette(DartSource src, Profile profile, Emit emit) {
       detail: '${hits.length} colors in the indigo-violet band');
 }
 
-void _nestedCards(DartSource src, Profile profile, Emit emit) {
+void _nestedCards(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   final cards = src.calls.where((c) => c.name == 'Card').toList();
   for (final outer in cards) {
     for (final inner in cards) {
@@ -126,14 +128,14 @@ void _nestedCards(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _bounceEasing(DartSource src, Profile profile, Emit emit) {
+void _bounceEasing(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   final re = RegExp(r'\bCurves\.(bounce\w+|elastic\w+|easeOutBack|easeInBack|easeInOutBack)\b');
   for (final m in re.allMatches(src.masked)) {
     emit('bounce-easing', src.lineAt(m.start), detail: 'Curves.${m[1]}');
   }
 }
 
-void _sideTab(DartSource src, Profile profile, Emit emit) {
+void _sideTab(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   // Border(left: BorderSide(...)) / Border(right: ...) with a visible width.
   for (final border in src.calls.where((c) => c.name == 'Border' && c.constructor == null)) {
     for (final side in ['left', 'right', 'top', 'bottom']) {
@@ -162,7 +164,7 @@ void _sideTab(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _darkGlow(DartSource src, Profile profile, Emit emit) {
+void _darkGlow(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   for (final s in src.calls.where((c) => c.name == 'BoxShadow')) {
     final blur = s.numArg('blurRadius') ?? 0;
     final offset = s.arg('offset') ?? '';
@@ -175,7 +177,7 @@ void _darkGlow(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _radialHalo(DartSource src, Profile profile, Emit emit) {
+void _radialHalo(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   for (final g in src.calls.where((c) => c.name == 'RadialGradient')) {
     final inDecoration = src.calls.any((c) =>
         c.name == 'BoxDecoration' && c.contains(g));
@@ -183,7 +185,7 @@ void _radialHalo(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _iconTileStack(DartSource src, Profile profile, Emit emit) {
+void _iconTileStack(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   for (final col in src.calls.where((c) => c.name == 'Column')) {
     final children = src.calls.where(col.contains).toList();
     final tile = children.firstWhere(
@@ -199,7 +201,7 @@ void _iconTileStack(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _kickerAboveHeading(DartSource src, Profile profile, Emit emit) {
+void _kickerAboveHeading(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   for (final col in src.calls.where((c) => c.name == 'Column')) {
     final texts = src.calls
         .where((c) => col.contains(c) && c.name == 'Text')
@@ -230,7 +232,7 @@ double? _fontSizeOf(DartSource src, WidgetCall text) {
   return style.numArg('fontSize');
 }
 
-void _typeScaleRules(DartSource src, Profile profile, Emit emit) {
+void _typeScaleRules(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   final sizes = <double>[];
   for (final style in src.calls.where((c) => c.name == 'TextStyle')) {
     final size = style.numArg('fontSize');
@@ -274,7 +276,7 @@ void _typeScaleRules(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _monotonousSpacing(DartSource src, Profile profile, Emit emit) {
+void _monotonousSpacing(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   final values = <double, int>{};
   int? firstLine;
   void note(double v, int line) {
@@ -305,7 +307,7 @@ void _monotonousSpacing(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _copyRules(DartSource src, Profile profile, Emit emit) {
+void _copyRules(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   var emDashes = 0;
   int? emDashLine;
   for (final lit in src.strings) {
@@ -329,7 +331,7 @@ void _copyRules(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _crampedPadding(DartSource src, Profile profile, Emit emit) {
+void _crampedPadding(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   for (final c in src.calls.where((c) => c.name == 'EdgeInsets')) {
     final nums = RegExp(r'([\d.]+)')
         .allMatches(c.args)
@@ -347,7 +349,7 @@ void _crampedPadding(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _layoutTransition(DartSource src, Profile profile, Emit emit) {
+void _layoutTransition(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   for (final c in src.calls.where((c) =>
       c.name == 'AnimatedContainer' || c.name == 'AnimatedPositioned')) {
     if (c.arg('width') != null || c.arg('height') != null) {
@@ -357,7 +359,7 @@ void _layoutTransition(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _lowContrast(DartSource src, Profile profile, Emit emit) {
+void _lowContrast(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   // A literal text color inside a container with a literal background is the
   // one contrast pair a static pass can actually resolve.
   for (final box in src.calls.where((c) => c.name == 'BoxDecoration' || c.name == 'Container')) {
@@ -385,7 +387,7 @@ void _lowContrast(DartSource src, Profile profile, Emit emit) {
 // Flutter platform rules
 // --------------------------------------------------------------------------
 
-void _hardcodedColor(DartSource src, Profile profile, Emit emit) {
+void _hardcodedColor(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   if (_isThemeFile(src)) return;
   const colorArgs = [
     'color', 'backgroundColor', 'foregroundColor', 'fillColor',
@@ -406,7 +408,7 @@ void _hardcodedColor(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _hardcodedTextStyle(DartSource src, Profile profile, Emit emit) {
+void _hardcodedTextStyle(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   if (_isThemeFile(src)) return;
   for (final c in src.calls.where((c) => c.name == 'TextStyle')) {
     if (c.numArg('fontSize') == null) continue;
@@ -420,7 +422,7 @@ void _hardcodedTextStyle(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _missingSafeArea(DartSource src, Profile profile, Emit emit) {
+void _missingSafeArea(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   final scaffolds = src.calls.where((c) => c.name == 'Scaffold').toList();
   if (scaffolds.isEmpty) return;
   if (profile.target == Target.tv) return; // overscan-unsafe covers TV
@@ -431,7 +433,7 @@ void _missingSafeArea(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _tapTargetUndersized(DartSource src, Profile profile, Emit emit) {
+void _tapTargetUndersized(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   if (!profile.isTouch) return;
   for (final box in src.calls.where((c) => c.name == 'SizedBox' || c.name == 'Container')) {
     final w = box.numArg('width');
@@ -459,7 +461,7 @@ void _tapTargetUndersized(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _mediaQuerySizeBranch(DartSource src, Profile profile, Emit emit) {
+void _mediaQuerySizeBranch(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   final re = RegExp(r'MediaQuery\.(?:of\(\s*context\s*\)\.size|sizeOf\(\s*context\s*\))\.(width|height)');
   for (final m in re.allMatches(src.masked)) {
     // Only flag when the value drives a decision or a dimension, not when it
@@ -475,7 +477,7 @@ void _mediaQuerySizeBranch(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _missingSemantics(DartSource src, Profile profile, Emit emit) {
+void _missingSemantics(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   for (final b in src.calls.where((c) => c.name == 'IconButton')) {
     if (b.arg('tooltip') == null) {
       emit('missing-semantics', b.line, detail: 'IconButton without tooltip');
@@ -491,7 +493,7 @@ void _missingSemantics(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _deprecatedApis(DartSource src, Profile profile, Emit emit) {
+void _deprecatedApis(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   for (final m in RegExp(r'\.withOpacity\(').allMatches(src.masked)) {
     emit('deprecated-with-opacity', src.lineAt(m.start));
   }
@@ -500,7 +502,7 @@ void _deprecatedApis(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _unboundedList(DartSource src, Profile profile, Emit emit) {
+void _unboundedList(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   const scrollers = {'ListView', 'GridView', 'CustomScrollView', 'SingleChildScrollView'};
   for (final col in src.calls.where((c) => c.name == 'Column' || c.name == 'Row')) {
     for (final list in src.calls.where((c) => col.contains(c) && scrollers.contains(c.name))) {
@@ -517,7 +519,7 @@ void _unboundedList(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _fixedHeightTextBox(DartSource src, Profile profile, Emit emit) {
+void _fixedHeightTextBox(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   for (final box in src.calls.where((c) => c.name == 'SizedBox')) {
     final h = box.numArg('height');
     if (h == null || h > 200) continue;
@@ -528,7 +530,7 @@ void _fixedHeightTextBox(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _platformControlMix(DartSource src, Profile profile, Emit emit) {
+void _platformControlMix(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   if (profile.target == Target.tv) return;
   final cupertino = RegExp(r'\bCupertino[A-Z]\w*\s*\(').firstMatch(src.masked);
   if (cupertino == null) return;
@@ -540,7 +542,7 @@ void _platformControlMix(DartSource src, Profile profile, Emit emit) {
       detail: '${cupertino[0]!.trim()} beside ${material[1]}');
 }
 
-void _networkImageUnguarded(DartSource src, Profile profile, Emit emit) {
+void _networkImageUnguarded(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   for (final img in src.calls
       .where((c) => c.name == 'Image' && c.constructor == 'network')) {
     if (img.arg('errorBuilder') == null) {
@@ -570,7 +572,7 @@ const _focusableWidgets = {
   'ListTile', 'Radio', 'Checkbox', 'Switch', 'MenuItemButton',
 };
 
-void _unreachableByDpad(DartSource src, Profile profile, Emit emit) {
+void _unreachableByDpad(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   if (!profile.isFocusDriven) return;
   for (final g in src.calls.where((c) => c.name == 'GestureDetector')) {
     if (g.arg('onTap') == null) continue;
@@ -583,7 +585,7 @@ void _unreachableByDpad(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _missingFocusHighlight(DartSource src, Profile profile, Emit emit) {
+void _missingFocusHighlight(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   if (!profile.isFocusDriven) return;
   for (final f in src.calls
       .where((c) => c.name == 'Focus' || c.name == 'FocusableActionDetector')) {
@@ -598,7 +600,7 @@ void _missingFocusHighlight(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _noAutofocusOnRoute(DartSource src, Profile profile, Emit emit) {
+void _noAutofocusOnRoute(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   if (!profile.isFocusDriven) return;
   final scaffolds = src.calls.where((c) => c.name == 'Scaffold').toList();
   if (scaffolds.isEmpty) return;
@@ -612,7 +614,7 @@ void _noAutofocusOnRoute(DartSource src, Profile profile, Emit emit) {
       detail: 'screen has focusable controls but nothing takes focus on entry');
 }
 
-void _hoverOnlyAffordance(DartSource src, Profile profile, Emit emit) {
+void _hoverOnlyAffordance(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   if (profile.isTouch) return;
   for (final c in src.calls) {
     final hover = c.arg('onHover') ?? (c.name == 'MouseRegion' ? c.arg('onEnter') : null);
@@ -627,7 +629,7 @@ void _hoverOnlyAffordance(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _overscanUnsafe(DartSource src, Profile profile, Emit emit) {
+void _overscanUnsafe(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   if (profile.target != Target.tv) return;
   final scaffolds = src.calls.where((c) => c.name == 'Scaffold').toList();
   if (scaffolds.isEmpty) return;
@@ -662,7 +664,7 @@ final _aphorismRe = RegExp(
     r'^\s*(?:not|no)\b[^.!?]{2,60}[.!?]\s+(?:just|only|simply|it\s)',
     caseSensitive: false);
 
-void _copyCadenceRules(DartSource src, Profile profile, Emit emit) {
+void _copyCadenceRules(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   var aphorisms = 0;
   int? aphorismLine;
   final numbered = <int>[];
@@ -704,7 +706,7 @@ void _copyCadenceRules(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _typeSecondWave(DartSource src, Profile profile, Emit emit) {
+void _typeSecondWave(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   for (final style in src.calls.where((c) => c.name == 'TextStyle')) {
     final size = style.numArg('fontSize');
     final tracking = style.numArg('letterSpacing');
@@ -749,7 +751,7 @@ void _typeSecondWave(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _heroEyebrowChip(DartSource src, Profile profile, Emit emit) {
+void _heroEyebrowChip(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   // The eyebrow rendered as a pill: a rounded, padded container holding a
   // small letterspaced label, sitting above a display-size heading.
   for (final chip in src.calls.where((c) =>
@@ -771,7 +773,7 @@ void _heroEyebrowChip(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _grayOnColor(DartSource src, Profile profile, Emit emit) {
+void _grayOnColor(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   for (final box in src.calls
       .where((c) => c.name == 'BoxDecoration' || c.name == 'Container')) {
     final bg = parseColor(box.arg('color') ?? '');
@@ -789,7 +791,7 @@ void _grayOnColor(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _surfaceDecorationRules(DartSource src, Profile profile, Emit emit) {
+void _surfaceDecorationRules(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   for (final d in src.calls.where((c) => c.name == 'BoxDecoration')) {
     final bg = parseColor(d.arg('color') ?? '');
     if (bg != null && _isCream(bg)) {
@@ -837,7 +839,7 @@ bool _isCream(Rgb c) {
   return light && h >= 20 && h <= 70 && c.chroma > 0.03 && c.chroma < 0.25;
 }
 
-void _motionSecondWave(DartSource src, Profile profile, Emit emit) {
+void _motionSecondWave(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   // A repeating controller is what turns a dot into a pulse and a caret into
   // a blink; without one these are static and fine.
   final repeats = RegExp(r'\.repeat\s*\(').hasMatch(src.masked);
@@ -888,7 +890,7 @@ void _motionSecondWave(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _radialSpotlightGlow(DartSource src, Profile profile, Emit emit) {
+void _radialSpotlightGlow(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   for (final g in src.calls.where((c) => c.name == 'RadialGradient')) {
     // The spotlight variant fades a chromatic accent out to transparent; the
     // plain halo is already covered by radial-halo.
@@ -901,7 +903,7 @@ void _radialSpotlightGlow(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _imageHoverTransform(DartSource src, Profile profile, Emit emit) {
+void _imageHoverTransform(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   if (profile.target != Target.web) return;
   for (final r in src.calls.where((c) => c.name == 'MouseRegion')) {
     if (r.arg('onEnter') == null) continue;
@@ -916,7 +918,7 @@ void _imageHoverTransform(DartSource src, Profile profile, Emit emit) {
   }
 }
 
-void _repeatedContainerText(DartSource src, Profile profile, Emit emit) {
+void _repeatedContainerText(DartSource src, Profile profile, DesignSystem? design, Emit emit) {
   for (final parent
       in src.calls.where((c) => c.name == 'Column' || c.name == 'Row')) {
     final seen = <String, int>{};
@@ -933,6 +935,66 @@ void _repeatedContainerText(DartSource src, Profile profile, Emit emit) {
       } else {
         seen[value] = text.line;
       }
+    }
+  }
+}
+
+// --------------------------------------------------------------------------
+// Design-system conformance
+//
+// These stay silent unless the project has a DESIGN.md. The point is not that
+// a literal is bad — the other rules cover that — but that the value is not
+// one the project ever declared. A project with no declared system has nothing
+// to be outside of.
+// --------------------------------------------------------------------------
+
+void _designSystemRules(
+    DartSource src, Profile profile, DesignSystem? design, Emit emit) {
+  if (design == null || design.isEmpty) return;
+  const where = 'DESIGN.md';
+
+  if (design.colors.isNotEmpty) {
+    for (final c in src.calls) {
+      for (final name in const ['color', 'backgroundColor', 'foregroundColor']) {
+        final expr = c.arg(name);
+        if (expr == null) continue;
+        final rgb = parseColor(expr);
+        if (rgb == null || rgb.a == 0) continue;
+        if (design.declaresColor(rgb)) continue;
+        emit('design-system-color', c.line,
+            detail: '${rgb.hex} is not in $where');
+      }
+    }
+  }
+
+  if (design.fonts.isNotEmpty) {
+    for (final m
+        in RegExp(r"""fontFamily\s*:\s*['"]([^'"]+)['"]""").allMatches(src.text)) {
+      if (design.declaresFont(m[1]!)) continue;
+      emit('design-system-font', src.lineAt(m.start),
+          detail: '${m[1]} is not in $where');
+    }
+  }
+
+  if (design.fontSizes.isNotEmpty) {
+    for (final style in src.calls.where((c) => c.name == 'TextStyle')) {
+      final size = style.numArg('fontSize');
+      if (size == null || design.declaresFontSize(size)) continue;
+      emit('design-system-font-size', style.line,
+          detail: 'fontSize $size is not on the ramp in $where');
+    }
+  }
+
+  if (design.radii.isNotEmpty) {
+    for (final r in src.calls.where((c) =>
+        (c.name == 'BorderRadius' || c.name == 'Radius') &&
+        (c.constructor == 'circular' || c.constructor == 'all'))) {
+      final m = RegExp(r'([\d.]+)').firstMatch(r.args);
+      if (m == null) continue;
+      final value = double.parse(m[1]!);
+      if (design.declaresRadius(value)) continue;
+      emit('design-system-radius', r.line,
+          detail: 'radius $value is not in $where');
     }
   }
 }

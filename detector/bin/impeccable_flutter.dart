@@ -13,6 +13,8 @@ Options
   --json              Machine-readable findings
   --only <ids>        Comma-separated rule ids to run
   --ignore <ids>      Comma-separated rule ids to skip
+  --design <path>     DESIGN.md to check against (default: discovered by
+                      walking up from the scanned path)
   --target <surface>  phone (default) | tablet | tv | web — changes which
                       rules apply and the thresholds they use
   --fail-on <level>   Exit 1 at or above this severity: error|warning|advisory
@@ -55,6 +57,7 @@ void main(List<String> argv) {
       final only = listOpt('--only');
       final ignore = listOpt('--ignore');
       final failOn = stringOpt('--fail-on');
+      final designPath = stringOpt('--design');
       final targetName = stringOpt('--target') ?? 'phone';
       final target = Target.parse(targetName);
       if (target == null) {
@@ -67,7 +70,12 @@ void main(List<String> argv) {
         exit(64);
       }
       _detect(paths,
-          only: only, ignore: ignore, json: json, failOn: failOn, target: target);
+          only: only,
+          ignore: ignore,
+          json: json,
+          failOn: failOn,
+          target: target,
+          designPath: designPath);
     default:
       stdout.write(_usage);
       exit(64);
@@ -118,9 +126,14 @@ void _detect(
   required bool json,
   required Target target,
   String? failOn,
+  String? designPath,
 }) {
+  final design = designPath != null
+      ? DesignSystem.parse(File(designPath).readAsStringSync(), path: designPath)
+      : DesignSystem.discover(paths.first);
   final findings =
-      Scanner(only: only, ignore: ignore, target: target).scanPaths(paths);
+      Scanner(only: only, ignore: ignore, target: target, design: design)
+          .scanPaths(paths);
 
   if (json) {
     stdout.writeln(const JsonEncoder.withIndent('  ')

@@ -5,7 +5,7 @@ Design guidance and a deterministic detector for Flutter, ported from [pbakaus/i
 Two pieces:
 
 - **`skills/impeccable-flutter/`** — an agent skill: `SKILL.md` plus 16 reference playbooks covering the Flutter platform contract, theming, type, layout, color, motion, hardening, adaptivity, and a device-based verification loop.
-- **`detector/`** — a zero-dependency Dart CLI that runs 59 rules over Dart source across four target surfaces (phone, tablet, TV, web). No model, no network, no running app.
+- **`detector/`** — a zero-dependency Dart CLI that runs 63 rules over Dart source across four target surfaces (phone, tablet, TV, web). No model, no network, no running app.
 
 ## Why a port rather than a config
 
@@ -18,18 +18,16 @@ What does transfer is the rule catalog. `tool/extract_registry.pl` pulls all 61 
 | Category | Count | What it is |
 |---|---|---|
 | `slop` | 31 | Taste failures, all ported from upstream |
-| `quality` | 11 | Defects a user feels, all ported |
+| `quality` | 15 | Defects a user feels, all ported |
 | `platform` | 17 | Flutter, Material, HIG and TV focus contracts — no upstream equivalent |
 
 ## What is not ported, and why
 
-42 of upstream's 61 rules are carried over. The remaining 19 fall into three groups.
+46 of upstream's 61 rules are carried over. The remaining 15 fall into two groups.
 
 **12 need rendered geometry** and are not portable to static source at any effort. `reference/verify.md` covers them with screenshots and golden tests instead:
 
 `body-text-viewport-edge` · `broken-image` · `buried-raster` · `clipped-overflow-container` · `content-hidden-at-rest` · `edge-flush-cards` · `first-viewport-column-overflow` · `heading-rhythm` · `line-length` · `script-error` · `text-occlusion` · `text-overflow`
-
-**4 need a DESIGN.md parser**, which is a feature rather than a rule: `design-system-color`, `design-system-font`, `design-system-font-size`, `design-system-radius`. Each flags a value used in code that the project's design system never declared.
 
 **3 are portable but deliberately skipped**, because a Flutter port of them would report more noise than signal:
 
@@ -38,11 +36,33 @@ What does transfer is the rule catalog. `tool/extract_registry.pl` pulls all 61 
 
 The 17 platform rules are the part that has no upstream counterpart, because a web page has no notch, no text scaler, no predictive back, no D-pad and no 48dp floor: `hardcoded-color`, `hardcoded-text-style`, `missing-safe-area`, `tap-target-undersized`, `mediaquery-size-branch`, `missing-semantics`, `deprecated-with-opacity`, `unbounded-list`, `fixed-height-text-box`, `platform-control-mix`, `deprecated-will-pop-scope`, `network-image-unguarded`, plus five that only apply to focus-driven surfaces: `unreachable-by-dpad`, `missing-focus-highlight`, `no-autofocus-on-route`, `hover-only-affordance`, `overscan-unsafe`.
 
+## Design-system conformance
+
+Four rules — `design-system-color`, `design-system-font`, `design-system-font-size`, `design-system-radius` — check code against the project's own `DESIGN.md` rather than against a universal standard. They ask whether a value is one the project ever declared.
+
+They stay silent unless a `DESIGN.md` is found, because a project with no declared system has nothing for a value to be outside of. The detector walks up from the scanned path to find it, or takes `--design <path>`.
+
+The parse is deliberately forgiving — it scans for value-shaped tokens rather than demanding a schema, so the document stays something a person can edit:
+
+```markdown
+## Color
+| primary | #1B7F5C |
+
+## Type
+Font: Söhne
+Type ramp — font size: 36, 24, 18, 16, 13
+
+## Spacing and shape
+Corner radius: 4, 8, 12
+```
+
+Alpha is ignored when matching colors, so a declared token used at 40% opacity still counts. `reference/document.md` covers writing the document; `make detect P=... ` picks it up automatically.
+
 ## Use
 
 ```bash
 nix develop            # or direnv allow
-make test              # 157 tests
+make test              # 172 tests
 make rules             # the catalog
 make detect P=path/to/your/app/lib
 make detect P=path/to/your/app/lib TARGET=tv

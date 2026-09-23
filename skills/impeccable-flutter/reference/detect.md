@@ -42,6 +42,17 @@ And these move with the target:
 
 Running a TV codebase on the default target is the most likely way to get a clean report that means nothing. `dart run impeccable_flutter rules` prints each rule's target scope in brackets.
 
+## Design system
+
+`--design <path>` points at a `DESIGN.md`; without it the detector walks up from the scanned path to find one. The four `design-system-*` rules stay silent when there is none.
+
+```bash
+dart run impeccable_flutter detect lib --design DESIGN.md
+dart run impeccable_flutter detect lib --only design-system-color
+```
+
+These rules are the only ones that ask about the project rather than about Flutter. A value they flag is not wrong — it is undeclared. Either add it to the document on purpose, or use the token that already covers the case.
+
 ## Reading the output
 
 Each finding carries a rule id, a severity, the file and line, the source line, and the measured value that tripped it.

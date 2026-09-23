@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'design_system.dart';
 import 'finding.dart';
 import 'registry.dart';
 import 'rules.dart';
@@ -9,14 +10,23 @@ import 'target.dart';
 /// Runs the rule set over Dart source and applies inline waivers, the way
 /// upstream's `detect_text` does for HTML/CSS.
 class Scanner {
-  Scanner({Set<String>? only, Set<String>? ignore, Target target = Target.phone})
-      : only = only ?? const {},
+  Scanner({
+    Set<String>? only,
+    Set<String>? ignore,
+    Target target = Target.phone,
+    this.design,
+  })  : only = only ?? const {},
         ignore = ignore ?? const {},
         profile = Profile(target);
 
   final Set<String> only;
   final Set<String> ignore;
   final Profile profile;
+
+  /// The project's declared tokens. Null leaves the design-system rules
+  /// silent, which is the right default: a project with no DESIGN.md has
+  /// nothing for a value to be outside of.
+  final DesignSystem? design;
 
   List<Finding> scanSource(String path, String text) {
     final src = DartSource.parse(path, text);
@@ -45,7 +55,7 @@ class Scanner {
     }
 
     for (final check in kChecks) {
-      check(src, profile, emit);
+      check(src, profile, design, emit);
     }
     out.sort((a, b) {
       final byLine = a.line.compareTo(b.line);

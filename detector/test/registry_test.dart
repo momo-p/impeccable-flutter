@@ -70,9 +70,9 @@ void main() {
     };
     final ported = kRules.map((r) => r.portOf).whereType<String>().toSet();
     expect(upstreamIds.length, 61);
-    expect(ported.length, 42);
-    expect(upstreamIds.difference(ported).length, 19);
-    expect(kRules.length, 59);
+    expect(ported.length, 46);
+    expect(upstreamIds.difference(ported).length, 15);
+    expect(kRules.length, 63);
   });
 
   test('no check emits a rule the registry does not define', () {

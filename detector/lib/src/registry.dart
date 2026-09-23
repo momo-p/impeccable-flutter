@@ -15,6 +15,43 @@ import 'target.dart';
 /// here. They are not portable to static source; `verify.md` covers them with
 /// screenshots and golden tests instead.
 const List<Rule> kRules = [
+  // ---- Design-system conformance (silent without a DESIGN.md) -------------
+  Rule(
+    id: 'design-system-color',
+    category: Category.quality,
+    portOf: 'design-system-color',
+    section: 'Color',
+    name: 'Color outside DESIGN.md',
+    description:
+        'A color used in widget code that the project never declared. Either add it to the design system on purpose, or use the token that already covers this case.',
+  ),
+  Rule(
+    id: 'design-system-font',
+    category: Category.quality,
+    portOf: 'design-system-font',
+    section: 'Typography',
+    name: 'Font outside DESIGN.md',
+    description:
+        'A font family the design system does not list. A second undeclared face is how a type system quietly becomes two type systems.',
+  ),
+  Rule(
+    id: 'design-system-font-size',
+    category: Category.quality,
+    portOf: 'design-system-font-size',
+    section: 'Typography',
+    name: 'Font size off the ramp',
+    description:
+        'A font size that is not on the declared type ramp. One-off sizes are what flatten a scale into a gradient.',
+  ),
+  Rule(
+    id: 'design-system-radius',
+    category: Category.quality,
+    portOf: 'design-system-radius',
+    section: 'Visual Details',
+    name: 'Radius outside DESIGN.md',
+    description:
+        'A corner radius the design system does not declare. Mixed radii read as inconsistency long before anyone can name why.',
+  ),
   Rule(
     id: 'repeated-container-text',
     category: Category.quality,
