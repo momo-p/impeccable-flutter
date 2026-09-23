@@ -23,8 +23,9 @@ const _entries = [
   ),
   Entry(
     title: 'Night of the Living Dead',
-    note: 'Half watched. 1h 36m.',
+    note: '38 minutes left.',
     poster: 'assets/posters/night-of-the-living-dead.jpg',
+    progress: 0.6,
   ),
 ];
 
