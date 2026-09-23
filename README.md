@@ -62,8 +62,9 @@ Alpha is ignored when matching colors, so a declared token used at 40% opacity s
 
 ```bash
 nix develop            # or direnv allow
-make test              # 189 tests
+make test              # 202 tests
 make rules             # the catalog
+make signals P=path/to/your/app   # what the project already is
 make detect P=path/to/your/app/lib
 make detect P=path/to/your/app/lib TARGET=tv
 ```

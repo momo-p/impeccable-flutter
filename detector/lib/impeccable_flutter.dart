@@ -11,5 +11,6 @@ export 'src/design_system.dart';
 export 'src/finding.dart';
 export 'src/registry.dart';
 export 'src/scanner.dart';
+export 'src/signals.dart';
 export 'src/target.dart';
 export 'src/source.dart' show DartSource, StringLiteral, WidgetCall;

@@ -19,6 +19,19 @@ Every `.dart` file under the paths given, skipping `.dart_tool/`, `build/`, `.g.
 
 Comments and string bodies are blanked before matching, so a widget name in a doc comment is not a finding. String literals are kept separately for the copy rules.
 
+## Project state
+
+```bash
+impeccable-flutter signals            # human-readable
+impeccable-flutter signals . --json   # for a flow to branch on
+```
+
+Reports what the project already is: name, platform folders, whether `PRODUCT.md`, `DESIGN.md`, a theme file and a baseline exist, how many Dart files and how many hold a `Scaffold`, and the target it can infer.
+
+The target inference is the useful part. An Android TV app declares a `LEANBACK_LAUNCHER` intent in its manifest and nothing else does, so a TV project never has to be asked what it is. Android or iOS folders mean `phone`; web alone means `web`; anything else reports `unclear — ask`.
+
+[init.md](init.md) branches on this. Nothing here mutates the project.
+
 ## Targets
 
 `--target phone|tablet|tv|web` (default `phone`) decides which rules run and what their thresholds are. Five rules only exist on focus-driven surfaces:

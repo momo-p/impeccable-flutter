@@ -22,10 +22,11 @@ Core principles:
 
 ## Setup
 
-1. Establish the **target surface** first — `phone`, `tablet`, `tv` or `web`. It decides which rules apply and what the thresholds are, and a TV build judged as a phone build passes checks it should fail. Read it from PRODUCT.md, the platform folders in the repo, or ask once. Then run the detector over the target before reading any widget code:
+1. Run `impeccable-flutter signals` and read it: project name, platform folders, the target inferred from the Android manifest, and whether PRODUCT.md, DESIGN.md, a theme and a baseline already exist. Everything it reports is a fact on disk; asking the user about any of it wastes their time. With no PRODUCT.md, route through [reference/init.md](reference/init.md) instead of guessing.
+2. Establish the **target surface** — `phone`, `tablet`, `tv` or `web`. It decides which rules apply and what the thresholds are, and a TV build judged as a phone build passes checks it should fail. `signals` infers it where it can; ask once where it cannot. Then run the detector before reading any widget code:
    `impeccable-flutter detect <lib or file> --target <surface>` (the launcher at `<skill-dir>/scripts/impeccable-flutter`, or `impeccable-flutter` when it is on PATH). It is deterministic, needs no network and no model, and it tells you which of 65 rules the code already trips. Findings are evidence; start from them rather than re-deriving them by reading.
-2. Read `DESIGN.md` and `PRODUCT.md` if the project has them. Missing files do not make a project greenfield — the existing theme and widgets are the incumbent visual world, and `document` is how you capture it.
-3. Read [reference/flutter.md](reference/flutter.md) before any UI edit; it carries the platform contract. On a TV target read [reference/tv.md](reference/tv.md) as well — it overrides the touch guidance rather than adding to it. Read [reference/craft-floor.md](reference/craft-floor.md) immediately before writing widget code; it holds the quality floor and the bans.
+3. Read `DESIGN.md` and `PRODUCT.md` if the project has them. Missing files do not make a project greenfield — the existing theme and widgets are the incumbent visual world, and `document` is how you capture it.
+4. Read [reference/flutter.md](reference/flutter.md) before any UI edit; it carries the platform contract. On a TV target read [reference/tv.md](reference/tv.md) as well — it overrides the touch guidance rather than adding to it. Read [reference/craft-floor.md](reference/craft-floor.md) immediately before writing widget code; it holds the quality floor and the bans.
 
 ## How to design
 
@@ -61,7 +62,7 @@ A TV build judged as a phone build passes checks it should fail: the tap-target 
 | `detect [target]` | Evaluate | Run the deterministic rule engine over Dart source | [reference/detect.md](reference/detect.md) |
 | `audit [target]` | Evaluate | Scored technical review: a11y, performance, theming, conformance, adaptivity | [reference/audit.md](reference/audit.md) |
 | `critique [target]` | Evaluate | UX review: hierarchy, clarity, whether the screen has a point of view | [reference/critique.md](reference/critique.md) |
-| `init` | Build | Capture durable product context in PRODUCT.md | [reference/init.md](reference/init.md) |
+| `init` | Build | Start a project: infer what it already is, then build plain or discuss the design | [reference/init.md](reference/init.md) |
 | `document` | Build | Write DESIGN.md from the existing theme and widgets | [reference/document.md](reference/document.md) |
 | `theme` | Build | Build or repair the ThemeData layer everything else reads from | [reference/theme.md](reference/theme.md) |
 | `typeset [target]` | Enhance | Fix the type scale, fonts, hierarchy, and text scaling | [reference/typeset.md](reference/typeset.md) |
@@ -75,6 +76,7 @@ A TV build judged as a phone build passes checks it should fail: the tap-target 
 
 Routing:
 
+- **No PRODUCT.md:** route through [init.md](reference/init.md), which asks once whether to build plain or shape the direction first. Never start an interview the user did not ask for.
 - **No argument:** run `detect` over the changed files, then lead with the 2–3 highest-value commands based on what it found. Never auto-run a command; the recommendation is a suggestion the user confirms.
 - **Explicit or clearly implied command:** load its reference and follow it. Ask once if two fit.
 - **Otherwise:** treat it as general design work, starting from `detect` output.

@@ -8,6 +8,7 @@ impeccable-flutter — deterministic design detector for Flutter source
 
   impeccable-flutter detect [options] <paths…>
   impeccable-flutter rules [--json]
+  impeccable-flutter signals [path] [--json]
 
 Options
   --json              Machine-readable findings
@@ -56,6 +57,9 @@ void main(List<String> argv) {
   switch (command) {
     case 'rules':
       _printRules(json);
+    case 'signals':
+      final where = rest.where((a) => !a.startsWith('-')).firstOrNull ?? '.';
+      _printSignals(Signals.gather(where), json);
     case 'detect':
       final only = listOpt('--only');
       final ignore = listOpt('--ignore');
@@ -223,4 +227,25 @@ void _detect(
         findings.any((f) => order.indexOf(f.rule.severity.name) >= floor);
     if (tripped) exit(1);
   }
+}
+
+void _printSignals(Signals s, bool asJson) {
+  if (asJson) {
+    stdout.writeln(const JsonEncoder.withIndent('  ').convert(s.toJson()));
+    return;
+  }
+  String yes(bool v) => v ? 'yes' : 'no';
+
+  stdout.writeln('project     ${s.projectName ?? "(no pubspec.yaml)"}');
+  stdout.writeln('platforms   ${s.platforms.isEmpty ? "-" : s.platforms.join(", ")}');
+  stdout.writeln('target      ${s.inferredTarget?.name ?? "unclear — ask"}');
+  stdout.writeln('PRODUCT.md  ${yes(s.hasProduct)}');
+  stdout.writeln('DESIGN.md   ${s.hasDesign ? s.designPath! : "no"}');
+  stdout.writeln('theme       ${s.hasTheme ? s.themeFiles.join(", ") : "none found"}');
+  stdout.writeln('baseline    ${yes(s.hasBaseline)}');
+  stdout.writeln('code        ${s.dartFiles} dart files, ${s.screenFiles} with a Scaffold');
+  stdout.writeln('');
+  stdout.writeln(s.isGreenfield
+      ? 'Greenfield: nothing to preserve, so the design direction is open.'
+      : 'Existing code: the theme and widgets are the incumbent visual world.');
 }

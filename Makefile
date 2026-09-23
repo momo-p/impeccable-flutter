@@ -2,7 +2,7 @@ DETECTOR := detector
 P ?= ../flutter-tests/apps/slop_app/lib
 TARGET ?= phone
 
-.PHONY: all check test analyze detect rules registry build install clean
+.PHONY: all check test analyze detect rules signals registry build install clean
 
 all: check
 
@@ -18,6 +18,10 @@ test:
 ## detect: run the detector over a Flutter project — make detect P=path/to/lib [TARGET=tv]
 detect:
 	cd $(DETECTOR) && dart run bin/impeccable_flutter.dart detect $(abspath $(P)) --target $(TARGET)
+
+## signals: report what a project already is — make signals P=path/to/app
+signals:
+	cd $(DETECTOR) && dart run bin/impeccable_flutter.dart signals $(abspath $(P))
 
 ## build: compile the standalone detector binary (no Dart needed to run it)
 build:
