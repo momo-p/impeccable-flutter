@@ -15,6 +15,178 @@ import 'target.dart';
 /// here. They are not portable to static source; `verify.md` covers them with
 /// screenshots and golden tests instead.
 const List<Rule> kRules = [
+  Rule(
+    id: 'repeated-container-text',
+    category: Category.quality,
+    portOf: 'repeated-container-text',
+    section: 'Copy',
+    name: 'Same text repeated in one container',
+    description:
+        'The identical string rendered twice inside one parent is almost always a copy-paste that was never filled in, or a label duplicating its own value.',
+  ),
+  // ---- Second port wave ---------------------------------------------------
+  Rule(
+    id: 'radial-spotlight-glow',
+    category: Category.slop,
+    portOf: 'radial-spotlight-glow',
+    section: 'Color',
+    name: 'Decorative radial spotlight glow',
+    description:
+        'A low-opacity accent-colored radial gradient fading to transparent, dropped behind a hero as atmosphere. It carries no information and dates the screen.',
+  ),
+  Rule(
+    id: 'hero-eyebrow-chip',
+    category: Category.slop,
+    portOf: 'hero-eyebrow-chip',
+    section: 'Typography',
+    name: 'Hero eyebrow pill chip',
+    description:
+        'A tiny uppercase letterspaced label rendered as a pill chip above an oversized headline. Drop it and let the headline carry its own weight.',
+  ),
+  Rule(
+    id: 'undersized-ui-text',
+    category: Category.quality,
+    portOf: 'undersized-ui-text',
+    section: 'Typography',
+    name: 'Undersized functional text',
+    description:
+        'Interactive and content-bearing text — button labels, list tiles, tabs, chips — below the legibility floor is a defect, not a style choice. Being on the theme ramp does not exempt it.',
+  ),
+  Rule(
+    id: 'gray-on-color',
+    category: Category.quality,
+    portOf: 'gray-on-color',
+    section: 'Color',
+    name: 'Gray text on a colored surface',
+    description:
+        'Neutral gray text washes out on a tinted surface. Tint the text from the surface hue, or go to near-white or near-black. On Flutter this is what onSurfaceVariant exists for.',
+  ),
+  Rule(
+    id: 'aphoristic-cadence',
+    category: Category.slop,
+    portOf: 'aphoristic-cadence',
+    severity: Severity.advisory,
+    section: 'Copy',
+    name: 'Aphoristic-cadence copy',
+    description:
+        'Several strings landing on the same short rebuttal shape — "Not X. Y." or "No X. Just Y." — is the most recognizable rhythm of generated copy. Say the thing once, plainly.',
+  ),
+  Rule(
+    id: 'theater-slop-phrase',
+    category: Category.slop,
+    portOf: 'theater-slop-phrase',
+    severity: Severity.advisory,
+    section: 'Copy',
+    name: 'Theater framing copy',
+    description:
+        'Dismissing something as theater, noise or magic, or promising it "just works", is filler standing in for the actual claim.',
+  ),
+  Rule(
+    id: 'numbered-section-labels',
+    category: Category.slop,
+    portOf: 'numbered-section-labels',
+    severity: Severity.advisory,
+    section: 'Typography',
+    name: 'Tiny numbered section labels',
+    description:
+        'Small numeric index labels riding beside headings, section after section, is a screen numbering its own chapters instead of earning structure.',
+  ),
+  Rule(
+    id: 'pulsing-dot',
+    category: Category.slop,
+    portOf: 'pulsing-dot',
+    section: 'Motion',
+    name: 'Pulsing status dot',
+    description:
+        'A small circular container on a repeating animation simulates liveness decoratively. Reserve pulse for an indicator tied to genuinely changing data; otherwise a static, labeled dot is honest and calmer.',
+  ),
+  Rule(
+    id: 'blinking-cursor',
+    category: Category.slop,
+    portOf: 'blinking-cursor',
+    severity: Severity.advisory,
+    section: 'Motion',
+    name: 'Decorative blinking cursor',
+    description:
+        'A blinking caret animated into a hero simulates typing where no input exists. Real text fields draw their own caret.',
+  ),
+  Rule(
+    id: 'marquee',
+    category: Category.slop,
+    portOf: 'marquee',
+    section: 'Motion',
+    name: 'Auto-scrolling marquee',
+    description:
+        'Continuously auto-scrolling content demands attention it has not earned and hides half of itself at any moment. On TV it also fights the focus model.',
+  ),
+  Rule(
+    id: 'cream-palette',
+    category: Category.slop,
+    portOf: 'cream-palette',
+    section: 'Color',
+    name: 'Cream or beige surface',
+    description:
+        'A warm cream or beige background has become the default tasteful surface, reached for by reflex. Choose a background that comes from a deliberate palette.',
+  ),
+  Rule(
+    id: 'thin-border-wide-shadow',
+    category: Category.slop,
+    portOf: 'gpt-thin-border-wide-shadow',
+    severity: Severity.advisory,
+    section: 'Visual Details',
+    name: 'Hairline border with a wide shadow',
+    description:
+        'A hairline border paired with a wide diffuse shadow is a generated-UI signature. Commit to a defined edge or to soft elevation, not both.',
+  ),
+  Rule(
+    id: 'repeating-stripes-gradient',
+    category: Category.slop,
+    portOf: 'repeating-stripes-gradient',
+    severity: Severity.advisory,
+    section: 'Visual Details',
+    name: 'Repeating-gradient stripes',
+    description:
+        'Stripes built from a repeating gradient as surface decoration are a generated-UI signature. Reach for a deliberate texture or leave the surface plain.',
+  ),
+  Rule(
+    id: 'grid-line-background',
+    category: Category.slop,
+    portOf: 'codex-grid-background',
+    severity: Severity.advisory,
+    section: 'Visual Details',
+    name: 'Decorative grid-line background',
+    description:
+        'A grid or line field painted behind content. Reserve grid overlays for an actual canvas, map, blueprint or measurement surface.',
+  ),
+  Rule(
+    id: 'italic-serif-display',
+    category: Category.slop,
+    portOf: 'italic-serif-display',
+    section: 'Typography',
+    name: 'Italic serif display headline',
+    description:
+        'Oversized italic serif as the primary headline reads as taste in isolation and has become the universal generated hero. An editorial register may legitimately want it; judge by context.',
+  ),
+  Rule(
+    id: 'wide-tracking',
+    category: Category.quality,
+    portOf: 'wide-tracking',
+    section: 'Typography',
+    name: 'Wide letter spacing on body text',
+    description:
+        'Letter spacing above 0.05em on running text breaks up natural character groupings and slows reading. Reserve wide tracking for short uppercase labels.',
+  ),
+  Rule(
+    id: 'image-hover-transform',
+    category: Category.slop,
+    portOf: 'image-hover-transform',
+    severity: Severity.advisory,
+    targets: {Target.web},
+    section: 'Motion',
+    name: 'Image transform on hover',
+    description:
+        'Scaling or rotating an image on hover is a generated-UI signature. Let imagery sit still, or find a subtler purposeful interaction.',
+  ),
   // ---- Focus-driven targets: TV and the web's keyboard path --------------
   Rule(
     id: 'unreachable-by-dpad',

@@ -23,7 +23,7 @@ Core principles:
 ## Setup
 
 1. Establish the **target surface** first — `phone`, `tablet`, `tv` or `web`. It decides which rules apply and what the thresholds are, and a TV build judged as a phone build passes checks it should fail. Read it from PRODUCT.md, the platform folders in the repo, or ask once. Then run the detector over the target before reading any widget code:
-   `dart run impeccable_flutter detect <lib or file> --target <surface>` (from the `detector/` package, or the `impeccable-flutter` binary if installed). It is deterministic, needs no network and no model, and it tells you which of 41 rules the code already trips. Findings are evidence; start from them rather than re-deriving them by reading.
+   `dart run impeccable_flutter detect <lib or file> --target <surface>` (from the `detector/` package, or the `impeccable-flutter` binary if installed). It is deterministic, needs no network and no model, and it tells you which of 59 rules the code already trips. Findings are evidence; start from them rather than re-deriving them by reading.
 2. Read `DESIGN.md` and `PRODUCT.md` if the project has them. Missing files do not make a project greenfield — the existing theme and widgets are the incumbent visual world, and `document` is how you capture it.
 3. Read [reference/flutter.md](reference/flutter.md) before any UI edit; it carries the platform contract. On a TV target read [reference/tv.md](reference/tv.md) as well — it overrides the touch guidance rather than adding to it. Read [reference/craft-floor.md](reference/craft-floor.md) immediately before writing widget code; it holds the quality floor and the bans.
 

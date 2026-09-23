@@ -10,4 +10,4 @@ export 'src/finding.dart';
 export 'src/registry.dart';
 export 'src/scanner.dart';
 export 'src/target.dart';
-export 'src/source.dart' show DartSource, WidgetCall;
+export 'src/source.dart' show DartSource, StringLiteral, WidgetCall;

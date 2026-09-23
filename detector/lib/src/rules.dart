@@ -66,6 +66,15 @@ final List<RuleCheck> kChecks = [
   _noAutofocusOnRoute,
   _hoverOnlyAffordance,
   _overscanUnsafe,
+  _copyCadenceRules,
+  _typeSecondWave,
+  _heroEyebrowChip,
+  _grayOnColor,
+  _surfaceDecorationRules,
+  _motionSecondWave,
+  _radialSpotlightGlow,
+  _imageHoverTransform,
+  _repeatedContainerText,
 ];
 
 // --------------------------------------------------------------------------
@@ -635,5 +644,295 @@ void _overscanUnsafe(DartSource src, Profile profile, Emit emit) {
   if (!padded) {
     emit('overscan-unsafe', scaffolds.first.line,
         detail: 'no margin of ${inset.toInt()} or more; TV panels crop the edges');
+  }
+}
+
+// --------------------------------------------------------------------------
+// Second port wave
+// --------------------------------------------------------------------------
+
+const _theaterPhrases = [
+  'security theater', 'is just theater', 'cut through the noise', 'just works',
+  'it just works', 'like magic', 'is magic', 'no magic',
+];
+
+/// "Not X. Y." / "No X. Just Y." — the rebuttal cadence generated copy falls
+/// into. One is a sentence; several across a screen is a tic.
+final _aphorismRe = RegExp(
+    r'^\s*(?:not|no)\b[^.!?]{2,60}[.!?]\s+(?:just|only|simply|it\s)',
+    caseSensitive: false);
+
+void _copyCadenceRules(DartSource src, Profile profile, Emit emit) {
+  var aphorisms = 0;
+  int? aphorismLine;
+  final numbered = <int>[];
+
+  for (final lit in src.strings) {
+    final value = lit.value.trim();
+    final line = src.lineAt(lit.offset);
+
+    // A bare "01" / "02" used as a label. Checked before the length guard
+    // below, because the whole point of this one is that the string is tiny.
+    if (RegExp(r'^0\d$').hasMatch(value)) {
+      numbered.add(line);
+      continue;
+    }
+    if (value.length < 8) continue;
+
+    if (_aphorismRe.hasMatch(value)) {
+      aphorisms++;
+      aphorismLine ??= line;
+    }
+    final lower = value.toLowerCase();
+    for (final phrase in _theaterPhrases) {
+      if (lower.contains(phrase)) {
+        emit('theater-slop-phrase', line, detail: phrase);
+        break;
+      }
+    }
+  }
+
+  // One numbered label is a label; a run of them is a screen numbering its
+  // own chapters, which is what upstream flags.
+  if (numbered.length >= 2) {
+    emit('numbered-section-labels', numbered.first,
+        detail: '${numbered.length} numeric section labels');
+  }
+  if (aphorisms >= 3) {
+    emit('aphoristic-cadence', aphorismLine!,
+        detail: '$aphorisms strings share the rebuttal cadence');
+  }
+}
+
+void _typeSecondWave(DartSource src, Profile profile, Emit emit) {
+  for (final style in src.calls.where((c) => c.name == 'TextStyle')) {
+    final size = style.numArg('fontSize');
+    final tracking = style.numArg('letterSpacing');
+    final family = style.arg('fontFamily') ?? '';
+    final italic = style.args.contains('FontStyle.italic');
+
+    if (size != null &&
+        size >= profile.minBodyTextSize &&
+        size < profile.minUiTextSize) {
+      // Only functional text: something the user reads to operate the screen.
+      final functional = src.calls.any((c) =>
+          c.contains(style) &&
+          const {
+            'TextButton', 'ElevatedButton', 'FilledButton', 'OutlinedButton',
+            'ListTile', 'Chip', 'Tab', 'AppBar', 'NavigationDestination',
+          }.contains(c.name));
+      if (functional) {
+        emit('undersized-ui-text', style.line, detail: 'fontSize: $size');
+      }
+    }
+
+    // Wide tracking is for short caps labels; on running text it slows reading.
+    if (tracking != null && size != null && tracking > 0.05 * size && size >= 14) {
+      final shouty = style.args.contains('FontWeight.w') &&
+          RegExp(r'toUpperCase').hasMatch(src.text);
+      if (!shouty) {
+        emit('wide-tracking', style.line,
+            detail: 'letterSpacing: $tracking at fontSize: $size');
+      }
+    }
+
+    if (italic && size != null && size >= 32) {
+      final serif = RegExp(
+              r'(fraunces|recoleta|playfair|newsreader|lora|merriweather|georgia|garamond|serif)',
+              caseSensitive: false)
+          .hasMatch(family.isEmpty ? src.text : family);
+      if (serif) {
+        emit('italic-serif-display', style.line,
+            detail: 'italic serif at fontSize: $size');
+      }
+    }
+  }
+}
+
+void _heroEyebrowChip(DartSource src, Profile profile, Emit emit) {
+  // The eyebrow rendered as a pill: a rounded, padded container holding a
+  // small letterspaced label, sitting above a display-size heading.
+  for (final chip in src.calls.where((c) =>
+      c.name == 'Container' || c.name == 'Chip' || c.name == 'DecoratedBox')) {
+    final rounded = chip.args.contains('BorderRadius') || chip.name == 'Chip';
+    if (!rounded) continue;
+    final label = src.calls.firstWhere(
+        (c) => chip.contains(c) && c.name == 'TextStyle',
+        orElse: () => chip);
+    if (identical(label, chip)) continue;
+    final size = label.numArg('fontSize');
+    final tracked = (label.numArg('letterSpacing') ?? 0) > 0;
+    if (size == null || size > 14 || !tracked) continue;
+    final heading = src.calls.any((c) =>
+        c.name == 'TextStyle' &&
+        c.start > chip.end &&
+        (c.numArg('fontSize') ?? 0) >= 32);
+    if (heading) emit('hero-eyebrow-chip', chip.line);
+  }
+}
+
+void _grayOnColor(DartSource src, Profile profile, Emit emit) {
+  for (final box in src.calls
+      .where((c) => c.name == 'BoxDecoration' || c.name == 'Container')) {
+    final bg = parseColor(box.arg('color') ?? '');
+    if (bg == null || bg.isNeutral || bg.a < 0.9) continue;
+    for (final style
+        in src.calls.where((c) => c.name == 'TextStyle' && box.contains(c))) {
+      final fg = parseColor(style.arg('color') ?? '');
+      if (fg == null || !fg.isNeutral) continue;
+      // Near-white and near-black are the honest answers, not the failure.
+      final l = fg.luminance;
+      if (l > 0.75 || l < 0.05) continue;
+      emit('gray-on-color', style.line,
+          detail: '${fg.hex} on ${bg.hex}');
+    }
+  }
+}
+
+void _surfaceDecorationRules(DartSource src, Profile profile, Emit emit) {
+  for (final d in src.calls.where((c) => c.name == 'BoxDecoration')) {
+    final bg = parseColor(d.arg('color') ?? '');
+    if (bg != null && _isCream(bg)) {
+      emit('cream-palette', d.line, detail: bg.hex);
+    }
+
+    // A hairline edge and a wide soft shadow are two answers to one question.
+    final border = d.arg('border') ?? '';
+    final hairline = RegExp(r'width\s*:\s*(0?\.\d+|1(?:\.0)?)\b').hasMatch(border);
+    if (hairline) {
+      final wide = src.calls.any((s) =>
+          s.name == 'BoxShadow' && d.contains(s) && (s.numArg('blurRadius') ?? 0) >= 16);
+      if (wide) {
+        emit('thin-border-wide-shadow', d.line,
+            detail: 'hairline border with a blur of 16 or more');
+      }
+    }
+
+    // Stripes: a gradient whose stops repeat the same pair, or TileMode.repeated.
+    final gradient = d.arg('gradient') ?? '';
+    if (gradient.contains('TileMode.repeated') ||
+        RegExp(r'stops\s*:\s*\[[^\]]{20,}\]').hasMatch(gradient)) {
+      emit('repeating-stripes-gradient', d.line);
+    }
+  }
+
+  // A grid painted behind content, rather than a canvas or map surface.
+  for (final p in src.calls.where((c) => c.name == 'CustomPaint')) {
+    final painter = p.arg('painter') ?? '';
+    if (RegExp(r'grid|graphpaper|dotgrid', caseSensitive: false).hasMatch(painter)) {
+      emit('grid-line-background', p.line, detail: painter.trim());
+    }
+  }
+  for (final m in RegExp(r'\b\w*Grid(?:Painter|Background|Pattern)\b')
+      .allMatches(src.masked)) {
+    emit('grid-line-background', src.lineAt(m.start), detail: m[0]);
+  }
+}
+
+/// Warm off-white: high lightness, low chroma, hue in the yellow-orange band.
+bool _isCream(Rgb c) {
+  final h = c.hue;
+  if (h == null) return false;
+  final light = c.luminance > 0.7;
+  return light && h >= 20 && h <= 70 && c.chroma > 0.03 && c.chroma < 0.25;
+}
+
+void _motionSecondWave(DartSource src, Profile profile, Emit emit) {
+  // A repeating controller is what turns a dot into a pulse and a caret into
+  // a blink; without one these are static and fine.
+  final repeats = RegExp(r'\.repeat\s*\(').hasMatch(src.masked);
+
+  if (repeats) {
+    for (final c in src.calls.where((c) => c.name == 'Container' || c.name == 'DecoratedBox')) {
+      final w = c.numArg('width');
+      final h = c.numArg('height');
+      final small = (w ?? 99) <= 16 && (h ?? 99) <= 16;
+      final round = c.args.contains('BoxShape.circle') ||
+          (c.args.contains('BorderRadius') && small);
+      if (small && round) {
+        emit('pulsing-dot', c.line, detail: 'small round container on a repeating animation');
+      }
+    }
+    // A decorative caret is either named like one, or is a Text holding
+    // nothing but a bar or underscore driven by the repeating controller.
+    // A real text field draws its own caret, so the rule stands down there.
+    final realField =
+        RegExp(r'TextField|TextFormField|EditableText').hasMatch(src.masked);
+    if (!realField) {
+      for (final m in RegExp(r'\b(cursor|caret)\w*\b', caseSensitive: false)
+          .allMatches(src.masked)) {
+        emit('blinking-cursor', src.lineAt(m.start), detail: m[0]);
+      }
+      for (final lit in src.strings) {
+        if (RegExp(r'^[|_▌▊]$').hasMatch(lit.value.trim())) {
+          emit('blinking-cursor', src.lineAt(lit.offset),
+              detail: 'animated "${lit.value.trim()}" standing in for a caret');
+        }
+      }
+    }
+  }
+
+  // Marquee: an endlessly repeating horizontal scroll or slide.
+  if (repeats) {
+    final scrolls = RegExp(
+            r'(animateTo|jumpTo|SlideTransition|Transform\.translate|ScrollController)')
+        .hasMatch(src.masked);
+    if (scrolls) {
+      final m = RegExp(r'\.repeat\s*\(').firstMatch(src.masked)!;
+      emit('marquee', src.lineAt(m.start),
+          detail: 'content scrolls on a repeating animation');
+    }
+  }
+  for (final m in RegExp(r'\bMarquee\s*\(').allMatches(src.masked)) {
+    emit('marquee', src.lineAt(m.start));
+  }
+}
+
+void _radialSpotlightGlow(DartSource src, Profile profile, Emit emit) {
+  for (final g in src.calls.where((c) => c.name == 'RadialGradient')) {
+    // The spotlight variant fades a chromatic accent out to transparent; the
+    // plain halo is already covered by radial-halo.
+    final colors = g.arg('colors') ?? '';
+    if (!colors.contains('transparent') && !colors.contains('withValues')) {
+      continue;
+    }
+    final chromatic = findColors(colors).any((c) => !c.rgb.isNeutral);
+    if (chromatic) emit('radial-spotlight-glow', g.line);
+  }
+}
+
+void _imageHoverTransform(DartSource src, Profile profile, Emit emit) {
+  if (profile.target != Target.web) return;
+  for (final r in src.calls.where((c) => c.name == 'MouseRegion')) {
+    if (r.arg('onEnter') == null) continue;
+    final transformsImage = src.calls.any((c) =>
+        r.contains(c) &&
+        const {'AnimatedScale', 'AnimatedRotation', 'Transform', 'ScaleTransition'}
+            .contains(c.name)) &&
+        src.calls.any((c) => r.contains(c) && c.name == 'Image');
+    if (transformsImage) {
+      emit('image-hover-transform', r.line);
+    }
+  }
+}
+
+void _repeatedContainerText(DartSource src, Profile profile, Emit emit) {
+  for (final parent
+      in src.calls.where((c) => c.name == 'Column' || c.name == 'Row')) {
+    final seen = <String, int>{};
+    for (final text in src.calls.where((c) => parent.contains(c) && c.name == 'Text')) {
+      // The literal this Text renders, when it renders a literal at all.
+      final lit = src.strings.firstWhere(
+        (s) => s.offset > text.start && s.offset < text.end,
+        orElse: () => const StringLiteral(-1, ''),
+      );
+      final value = lit.value.trim();
+      if (lit.offset == -1 || value.length < 3) continue;
+      if (seen.containsKey(value)) {
+        emit('repeated-container-text', text.line, detail: '"$value" twice in one ${parent.name}');
+      } else {
+        seen[value] = text.line;
+      }
+    }
   }
 }

@@ -41,7 +41,7 @@ void main() {
     // union across targets rather than one phone-shaped pass.
     final fired = <String>{};
     for (final target in Target.values) {
-      for (final name in ['slop_home.dart', 'slop_settings.dart', 'tv_screen.dart']) {
+      for (final name in ['slop_home.dart', 'slop_settings.dart', 'tv_screen.dart', 'slop_marketing.dart']) {
         fired.addAll(scanFixture(name, target: target).map((f) => f.rule.id));
       }
     }

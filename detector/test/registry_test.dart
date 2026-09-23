@@ -62,6 +62,19 @@ void main() {
     expect(orphans, isEmpty, reason: 'no check emits these rules');
   });
 
+  test('the README port count matches the registry', () {
+    // The counts in the README are a claim about this file. Pinning them here
+    // means adding a rule fails the suite until the prose is updated too.
+    final upstreamIds = {
+      for (final r in _upstream()['rules'] as List) (r as Map)['id'] as String
+    };
+    final ported = kRules.map((r) => r.portOf).whereType<String>().toSet();
+    expect(upstreamIds.length, 61);
+    expect(ported.length, 42);
+    expect(upstreamIds.difference(ported).length, 19);
+    expect(kRules.length, 59);
+  });
+
   test('no check emits a rule the registry does not define', () {
     final text = File('lib/src/rules.dart').readAsStringSync();
     final emitted = RegExp(r"""emit\(\s*'([a-z0-9-]+)'""")
