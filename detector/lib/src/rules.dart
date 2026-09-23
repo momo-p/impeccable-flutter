@@ -994,9 +994,11 @@ void _designSystemRules(
     for (final r in src.calls.where((c) =>
         (c.name == 'BorderRadius' || c.name == 'Radius') &&
         (c.constructor == 'circular' || c.constructor == 'all'))) {
-      final m = RegExp(r'([\d.]+)').firstMatch(r.args);
-      if (m == null) continue;
-      final value = double.parse(m[1]!);
+      // Anchor on a whole number: `[\d.]+` matched the dot in a nested
+      // `Radius.circular` before reaching the digits, and parsing "." threw.
+      final m = RegExp(r'\b(\d+(?:\.\d+)?)\b').firstMatch(r.args);
+      final value = double.tryParse(m?[1] ?? '');
+      if (value == null) continue;
       if (design.declaresRadius(value)) continue;
       emit('design-system-radius', r.line,
           detail: 'radius $value is not in $where');

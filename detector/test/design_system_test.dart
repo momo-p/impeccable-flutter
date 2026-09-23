@@ -111,6 +111,23 @@ Container(
           isNot(contains('design-system-radius')));
     });
 
+    test('a nested Radius.circular does not crash the parse', () {
+      // `[\d.]+` matched the dot in `Radius.circular` before it reached the
+      // number, and double.parse(".") threw. This shape is ordinary Flutter.
+      const source = '''
+const shape = RoundedRectangleBorder(
+  borderRadius: BorderRadius.all(Radius.circular(12)),
+);''';
+      expect(() => idsFor(source, design: _system), returnsNormally);
+      expect(idsFor(source, design: _system),
+          isNot(contains('design-system-radius')));
+    });
+
+    test('a nested radius off the scale is still flagged', () {
+      const source = 'const s = BorderRadius.all(Radius.circular(20));';
+      expect(idsFor(source, design: _system), contains('design-system-radius'));
+    });
+
     test('the finding names the value and the document', () {
       final f = Scanner(design: _system)
           .scanSource('lib/a.dart', 'Container(color: Color(0xFF6366F1), child: c);')
