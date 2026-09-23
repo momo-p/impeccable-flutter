@@ -4,7 +4,7 @@
 
 ### Detector
 
-- 67 rules across four target surfaces (`phone`, `tablet`, `tv`, `web`). 46 of upstream impeccable's 61 rules are ported; each names its source in `portOf`, checked by a test.
+- 69 rules across four target surfaces (`phone`, `tablet`, `tv`, `web`). 46 of upstream impeccable's 61 rules are ported; each names its source in `portOf`, checked by a test.
 - `--target` decides which rules run and what their thresholds are. A TV build is not a phone build: tap targets do not exist, the text floor rises to 20sp, and five focus rules switch on.
 - `--baseline` / `--write-baseline` for adopting on a codebase that was not built against the detector. Entries key on the source line's text, not its number, so editing above a finding does not resurrect it.
 - Design-system conformance against the project's own `DESIGN.md`, and font and asset conformance against `pubspec.yaml`.

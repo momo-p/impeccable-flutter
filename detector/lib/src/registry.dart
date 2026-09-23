@@ -15,6 +15,23 @@ import 'target.dart';
 /// here. They are not portable to static source; `verify.md` covers them with
 /// screenshots and golden tests instead.
 const List<Rule> kRules = [
+  Rule(
+    id: 'mouse-drag-scroll',
+    category: Category.platform,
+    targets: {Target.web},
+    section: 'Platform',
+    name: 'Lists cannot be dragged with a mouse',
+    description:
+        'Flutter only treats touch and stylus as drag devices by default, so on the web a list scrolls with the wheel but not by dragging. Add PointerDeviceKind.mouse to a custom ScrollBehavior on MaterialApp.',
+  ),
+  Rule(
+    id: 'image-no-cache-size',
+    category: Category.platform,
+    section: 'Performance',
+    name: 'Image decoded at full size into a smaller box',
+    description:
+        'An Image given explicit dimensions but no cacheWidth or cacheHeight decodes the source at its original resolution and then scales it down. On a list of thumbnails that is the difference between a smooth scroll and a stuttering one.',
+  ),
   // ---- pubspec.yaml conformance -------------------------------------------
   Rule(
     id: 'undeclared-font',

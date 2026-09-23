@@ -26,6 +26,8 @@ class WebApp extends StatelessWidget {
                 'Changes land on your other devices within about a second, '
                 'and queue up while you are offline.',
               ),
+              // Sized down in the layout, decoded at full resolution.
+              Image.asset('assets/hero.png', width: 64, height: 64),
             ],
           ),
         ),

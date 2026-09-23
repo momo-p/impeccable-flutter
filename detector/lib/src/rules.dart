@@ -79,6 +79,8 @@ final List<RuleCheck> kChecks = [
   _designSystemRules,
   _webRules,
   _pubspecRules,
+  _mouseDragScroll,
+  _imageNoCacheSize,
 ];
 
 // --------------------------------------------------------------------------
@@ -1078,5 +1080,31 @@ void _pubspecRules(DartSource src, Profile profile, ProjectContext ctx, Emit emi
     if (pubspec.declaresAsset(path)) continue;
     emit('undeclared-asset', call.line,
         detail: '$path is not under flutter: assets:');
+  }
+}
+
+void _mouseDragScroll(DartSource src, Profile profile, ProjectContext ctx, Emit emit) {
+  if (profile.target != Target.web) return;
+  final apps = src.calls
+      .where((c) => c.name == 'MaterialApp' || c.name == 'CupertinoApp')
+      .toList();
+  if (apps.isEmpty) return;
+  // Either a ScrollBehavior that names the mouse, or nothing.
+  if (RegExp(r'PointerDeviceKind\.mouse').hasMatch(src.masked)) return;
+  emit('mouse-drag-scroll', apps.first.line,
+      detail:
+          '${apps.first.name} with no ScrollBehavior naming PointerDeviceKind.mouse');
+}
+
+void _imageNoCacheSize(DartSource src, Profile profile, ProjectContext ctx, Emit emit) {
+  for (final img in src.calls.where((c) =>
+      c.name == 'Image' &&
+      (c.constructor == 'network' || c.constructor == 'asset' ||
+          c.constructor == 'file' || c.constructor == 'memory'))) {
+    final sized = img.numArg('width') != null || img.numArg('height') != null;
+    if (!sized) continue;
+    if (img.arg('cacheWidth') != null || img.arg('cacheHeight') != null) continue;
+    emit('image-no-cache-size', img.line,
+        detail: 'Image.${img.constructor} sized but decoded in full');
   }
 }

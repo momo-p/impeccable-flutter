@@ -175,4 +175,48 @@ void main() {
       }
     });
   });
+  group('mouse-drag-scroll', () {
+    const app = "MaterialApp(home: ListView(children: items));";
+
+    test('fires on web when nothing names the mouse as a drag device', () {
+      expect(idsFor(app, Target.web), contains('mouse-drag-scroll'));
+    });
+
+    test('a ScrollBehavior naming PointerDeviceKind.mouse satisfies it', () {
+      const source = '''
+class AppScroll extends MaterialScrollBehavior {
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+      };
+}
+final app = MaterialApp(scrollBehavior: AppScroll(), home: list);''';
+      expect(idsFor(source, Target.web), isNot(contains('mouse-drag-scroll')));
+    });
+
+    test('does not apply off the web', () {
+      for (final t in [Target.phone, Target.tablet, Target.tv]) {
+        expect(idsFor(app, t), isNot(contains('mouse-drag-scroll')), reason: '$t');
+      }
+    });
+  });
+
+  group('image-no-cache-size', () {
+    test('fires on a sized image with no decode hint', () {
+      expect(idsFor("Image.asset('a.png', width: 64, height: 64);", Target.phone),
+          contains('image-no-cache-size'));
+    });
+
+    test('cacheWidth satisfies it', () {
+      expect(
+          idsFor("Image.asset('a.png', width: 64, cacheWidth: 128);", Target.phone),
+          isNot(contains('image-no-cache-size')));
+    });
+
+    test('an unsized image is not the same problem', () {
+      expect(idsFor("Image.asset('a.png');", Target.phone),
+          isNot(contains('image-no-cache-size')));
+    });
+  });
 }

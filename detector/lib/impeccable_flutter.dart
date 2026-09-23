@@ -11,6 +11,7 @@ export 'src/context.dart';
 export 'src/pubspec.dart';
 export 'src/design_system.dart';
 export 'src/finding.dart';
+export 'src/fixes.dart';
 export 'src/registry.dart';
 export 'src/scanner.dart';
 export 'src/signals.dart';

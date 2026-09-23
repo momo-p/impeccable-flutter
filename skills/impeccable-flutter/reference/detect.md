@@ -75,6 +75,26 @@ Two rules read `pubspec.yaml` alongside the Dart source, because what they check
 
 The detector walks up from the scanned path to find the pubspec. A directory entry such as `assets/images/` covers files directly inside it and not deeper ones, which is what Flutter itself does. A path built at runtime is skipped rather than guessed at, and a package with no `flutter:` section declares no assets by design, so the asset rule stands down.
 
+## Fixing
+
+`--fix` rewrites the findings that have a mechanical fix and leaves the rest alone. `--dry-run` reports without writing.
+
+```bash
+impeccable-flutter detect lib --fix --dry-run
+impeccable-flutter detect lib --fix
+```
+
+The table is deliberately short — today it is `deprecated-with-opacity` alone, because `.withOpacity(x)` and `.withValues(alpha: x)` mean the same thing and the argument carries over untouched.
+
+Nothing else on the list qualifies. "Use a theme role instead of this literal" needs someone to decide *which* role. "Give this button a tooltip" needs someone to write the words. `WillPopScope` → `PopScope` changes the callback's signature and its semantics. A fix that needs a judgment call would make `--fix` quietly wrong at scale, which is worse than reporting the finding, so those stay manual.
+
+Output says how many were rewritten and how many were left:
+
+```
+rewrote 2 findings in 1 file.
+3 findings need a decision and were left alone; run without --fix to see them.
+```
+
 ## Baseline
 
 `--baseline <path>` suppresses findings recorded in that file and reports only new ones; `--write-baseline` records the current set. This is how the detector gets adopted on a codebase that was not built against it.

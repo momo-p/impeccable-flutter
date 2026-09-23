@@ -5,7 +5,7 @@ Design guidance and a deterministic detector for Flutter, ported from [pbakaus/i
 Two pieces:
 
 - **`skills/impeccable-flutter/`** — an agent skill: `SKILL.md` plus 16 reference playbooks covering the Flutter platform contract, theming, type, layout, color, motion, hardening, adaptivity, and a device-based verification loop.
-- **`detector/`** — a zero-dependency Dart CLI that runs 67 rules over Dart source across four target surfaces (phone, tablet, TV, web). No model, no network, no running app.
+- **`detector/`** — a zero-dependency Dart CLI that runs 69 rules over Dart source across four target surfaces (phone, tablet, TV, web). No model, no network, no running app.
 
 ## Why a port rather than a config
 
@@ -19,7 +19,7 @@ What does transfer is the rule catalog. `tool/extract_registry.pl` pulls all 61 
 |---|---|---|
 | `slop` | 31 | Taste failures, all ported from upstream |
 | `quality` | 15 | Defects a user feels, all ported |
-| `platform` | 21 | Flutter, Material, HIG, TV focus, web and pubspec contracts — no upstream equivalent |
+| `platform` | 23 | Flutter, Material, HIG, TV focus, web and pubspec contracts — no upstream equivalent |
 
 ## What is not ported, and why
 
@@ -62,7 +62,7 @@ Alpha is ignored when matching colors, so a declared token used at 40% opacity s
 
 ```bash
 nix develop            # or direnv allow
-make test              # 217 tests
+make test              # 233 tests
 make rules             # the catalog
 make signals P=path/to/your/app   # what the project already is
 make detect P=path/to/your/app/lib

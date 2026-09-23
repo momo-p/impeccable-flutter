@@ -13,6 +13,8 @@ impeccable-flutter — deterministic design detector for Flutter source
 Options
   --json              Machine-readable findings
   --format <kind>     text (default) or github (inline PR annotations)
+  --fix               Rewrite the findings that have a mechanical fix
+  --dry-run           With --fix, report what would change without writing
   --only <ids>        Comma-separated rule ids to run
   --ignore <ids>      Comma-separated rule ids to skip
   --baseline <path>   Suppress findings recorded in this file; report only new ones
@@ -64,6 +66,8 @@ void main(List<String> argv) {
       final only = listOpt('--only');
       final ignore = listOpt('--ignore');
       final failOn = stringOpt('--fail-on');
+      final fix = rest.remove('--fix');
+      final dryRun = rest.remove('--dry-run');
       final format = stringOpt('--format') ?? 'text';
       if (format != 'text' && format != 'github') {
         stderr.writeln('--format: expected text or github, got "$format"');
@@ -92,7 +96,9 @@ void main(List<String> argv) {
           designPath: designPath,
           baselinePath: baselinePath,
           writeBaseline: writeBaseline,
-          format: format);
+          format: format,
+          fix: fix,
+          dryRun: dryRun);
     default:
       stdout.write(_usage);
       exit(64);
@@ -147,6 +153,8 @@ void _detect(
   String? baselinePath,
   bool writeBaseline = false,
   String format = 'text',
+  bool fix = false,
+  bool dryRun = false,
 }) {
   final design = designPath != null
       ? DesignSystem.parse(File(designPath).readAsStringSync(), path: designPath)
@@ -165,6 +173,23 @@ void _detect(
     Baseline.fromFindings(all).save(path);
     stdout.writeln('Recorded ${all.length} findings to $path.');
     stdout.writeln('Delete an entry once it is fixed; nothing re-adds it.');
+    return;
+  }
+
+  if (fix) {
+    final result = applyFixes(all, dryRun: dryRun);
+    final verb = dryRun ? 'would rewrite' : 'rewrote';
+    stdout.writeln('$verb ${result.applied} '
+        '${result.applied == 1 ? "finding" : "findings"} '
+        'in ${result.files.length} '
+        '${result.files.length == 1 ? "file" : "files"}.');
+    if (result.skipped > 0) {
+      stdout.writeln('${result.skipped} findings need a decision and were '
+          'left alone; run without --fix to see them.');
+    }
+    if (!dryRun && result.files.isNotEmpty) {
+      stdout.writeln('Re-run the detector to confirm.');
+    }
     return;
   }
 
