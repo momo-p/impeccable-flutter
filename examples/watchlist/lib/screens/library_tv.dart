@@ -25,7 +25,7 @@ class LibraryTv extends StatelessWidget {
               Text('Continue watching', style: theme.textTheme.displaySmall),
               const SizedBox(height: 32),
               SizedBox(
-                height: 280,
+                height: 400,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: entries.length,
@@ -94,16 +94,31 @@ class _TileState extends State<_Tile> {
               width: 240,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.asset(
+                        widget.entry.poster,
+                        width: 240,
+                        fit: BoxFit.cover,
+                        cacheWidth: 480,
+                        errorBuilder: (context, error, stack) => ColoredBox(
+                          color: theme.colorScheme.surfaceContainerHigh,
+                          child: const SizedBox(width: 240),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   Text(
                     widget.entry.title,
                     // Sized for three metres, not arm's length.
                     style: theme.textTheme.titleMedium,
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   Text(
                     widget.entry.note,
                     style: theme.textTheme.bodyMedium,
