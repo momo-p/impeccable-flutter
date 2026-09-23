@@ -9,12 +9,12 @@ const _entries = [
   Entry(
     title: 'Paris, Texas',
     note: 'Saved last week. 2h 25m.',
-    poster: 'assets/posters/paris-texas.jpg',
+    poster: 'assets/posters/paris-texas.png',
   ),
   Entry(
     title: 'A Brighter Summer Day',
     note: 'Four hours. Start it early.',
-    poster: 'assets/posters/brighter-summer-day.jpg',
+    poster: 'assets/posters/brighter-summer-day.png',
   ),
 ];
 

@@ -16,7 +16,7 @@ ThemeData buildWatchlistTheme(Brightness brightness) {
 
   return ThemeData(
     colorScheme: scheme,
-    fontFamily: 'Söhne',
+    fontFamily: 'Karla',
     textTheme: const TextTheme(
       displaySmall: TextStyle(
         fontFamily: 'Fraunces',

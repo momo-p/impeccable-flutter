@@ -18,7 +18,7 @@ Dark comes from the same seed, with its own tones chosen and checked for contras
 
 ## Type
 Display font: Fraunces
-Font: Söhne
+Font: Karla
 
 Type ramp, font size: 36, 24, 20, 16, 13
 

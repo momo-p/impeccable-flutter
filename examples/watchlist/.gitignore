@@ -1,0 +1,10 @@
+# `flutter create --platforms=web .` regenerates these when capturing
+# screenshots. None of them belong in the repo.
+build/
+web/
+.dart_tool/
+.idea/
+.metadata
+analysis_options.yaml
+pubspec.lock
+*.iml

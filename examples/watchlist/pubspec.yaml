@@ -18,8 +18,6 @@ flutter:
     - family: Fraunces
       fonts:
         - asset: fonts/Fraunces.ttf
-    - family: Söhne
+    - family: Karla
       fonts:
-        - asset: fonts/Soehne-Buch.otf
-        - asset: fonts/Soehne-Halbfett.otf
-          weight: 600
+        - asset: fonts/Karla.ttf

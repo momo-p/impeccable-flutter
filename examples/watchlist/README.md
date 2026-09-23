@@ -15,6 +15,22 @@ Check it yourself from the repo root:
 make example
 ```
 
+## What it looks like
+
+| Phone, light | Phone, dark |
+|---|---|
+| ![The after screen in the light scheme](docs/after-light.png) | ![The same screen in the dark scheme](docs/after-dark.png) |
+
+The before version of the same screen:
+
+![The before screen: an indigo gradient, an oversized headline that overflows, nested cards with a red side stripe, and tiny all-caps justified text](docs/before.png)
+
+The TV screen, with the first tile focused:
+
+![The TV screen: two tiles inside an overscan margin, the focused one scaled up with a green border](docs/tv.png)
+
+Every one is a real render captured from the running app. `tool/screenshots.sh` rebuilds and recaptures them. It needs Flutter and Chrome, and it is the only part of this repo that does.
+
 ## What ships here
 
 Source only. There are no `android/` or `ios/` folders, because this repo deliberately has no Flutter toolchain, and the detector is plain Dart that stays that way.
@@ -27,7 +43,7 @@ flutter create --platforms=android,ios .
 flutter run
 ```
 
-The posters and fonts named in `pubspec.yaml` are not committed. Supply your own or point the paths somewhere real. `library_after.dart` already handles a failed image with `errorBuilder`, so it renders without them.
+Fonts and posters are committed, so it runs as it stands. Both faces are under the SIL Open Font License; `fonts/README.md` has the details. The posters are flat-colour placeholders, and `library_after.dart` handles a failed load with `errorBuilder`, so replacing or deleting them both render.
 
 ## What the after version does differently
 
