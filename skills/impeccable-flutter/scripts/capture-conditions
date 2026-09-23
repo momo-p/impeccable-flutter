@@ -1,0 +1,135 @@
+#!/usr/bin/env sh
+# Capture the four conditions from the skill's verify.md off a real device or
+# emulator: light, dark, large text, and (where a second device exists) a
+# tablet. A single default-phone screenshot proves almost nothing; every
+# common Flutter layout failure shows up in one of the other three.
+#
+# The app must already be running on the device. This changes system settings
+# and puts them back on exit, including on Ctrl-C.
+set -eu
+
+out=shots
+device=
+scale=1.5
+
+usage() {
+  cat <<'USAGE'
+capture-conditions [--out DIR] [--device SERIAL] [--scale N]
+
+  --out DIR       where to write PNGs (default: shots)
+  --device SERIAL adb serial or iOS simulator UDID; required when more than
+                  one is attached, because display names collide and UDIDs
+                  do not
+  --scale N       font scale for the large-text pass (default: 1.5)
+
+Captures: light, dark, large-text. Run the app first, then this.
+USAGE
+}
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --out) out=${2:?--out needs a directory}; shift 2 ;;
+    --device) device=${2:?--device needs a serial}; shift 2 ;;
+    --scale) scale=${2:?--scale needs a number}; shift 2 ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "capture-conditions: unknown argument $1" >&2; usage >&2; exit 64 ;;
+  esac
+done
+
+if command -v adb >/dev/null 2>&1; then
+  platform=android
+elif command -v xcrun >/dev/null 2>&1 && xcrun simctl help >/dev/null 2>&1; then
+  platform=ios
+else
+  echo "capture-conditions: neither adb nor xcrun simctl is on PATH." >&2
+  echo "Install the Android platform-tools, or Xcode for the iOS simulator." >&2
+  exit 127
+fi
+
+mkdir -p "$out"
+
+# ---- Android ---------------------------------------------------------------
+if [ "$platform" = android ]; then
+  # A wrapper, not `set -- -s "$device"`: inside a function `$@` is that
+  # function's arguments, so the serial would silently vanish and the
+  # screenshot name would be passed to adb instead.
+  adb_() {
+    if [ -n "$device" ]; then
+      adb -s "$device" "$@"
+    else
+      adb "$@"
+    fi
+  }
+
+  count=$(adb devices | grep -c "[[:space:]]device$" || true)
+  if [ "$count" -eq 0 ]; then
+    echo "capture-conditions: no Android device or emulator attached." >&2
+    echo "Start one, run the app, then re-run this." >&2
+    exit 69
+  fi
+  if [ "$count" -gt 1 ] && [ -z "$device" ]; then
+    echo "capture-conditions: $count devices attached; pass --device SERIAL." >&2
+    adb devices >&2
+    exit 64
+  fi
+
+  # Remember what the device had so the user gets it back.
+  orig_night=$(adb_ shell cmd uimode night 2>/dev/null | tr -d '\r' | awk '{print $NF}')
+  orig_scale=$(adb_ shell settings get system font_scale 2>/dev/null | tr -d '\r')
+  case "$orig_scale" in null|'') orig_scale=1.0 ;; esac
+
+  restore() {
+    if [ -n "${orig_night:-}" ]; then
+      adb_ shell cmd uimode night "$orig_night" >/dev/null 2>&1 || true
+    fi
+    adb_ shell settings put system font_scale "$orig_scale" >/dev/null 2>&1 || true
+  }
+  trap restore EXIT INT TERM
+
+  shoot() {
+    sleep 2  # let the app settle after the setting change
+    adb_ exec-out screencap -p > "$out/$1.png"
+    echo "wrote $out/$1.png"
+  }
+
+  adb_ shell cmd uimode night no >/dev/null
+  adb_ shell settings put system font_scale 1.0 >/dev/null
+  shoot light
+
+  adb_ shell cmd uimode night yes >/dev/null
+  shoot dark
+
+  adb_ shell cmd uimode night no >/dev/null
+  adb_ shell settings put system font_scale "$scale" >/dev/null
+  shoot large-text
+fi
+
+# ---- iOS -------------------------------------------------------------------
+if [ "$platform" = ios ]; then
+  target=${device:-booted}
+  if ! xcrun simctl list devices booted | grep -q Booted; then
+    echo "capture-conditions: no booted iOS simulator." >&2
+    exit 69
+  fi
+
+  restore() { xcrun simctl ui "$target" appearance light >/dev/null 2>&1 || true; }
+  trap restore EXIT INT TERM
+
+  xcrun simctl ui "$target" appearance light >/dev/null
+  sleep 2
+  xcrun simctl io "$target" screenshot "$out/light.png"
+  echo "wrote $out/light.png"
+
+  xcrun simctl ui "$target" appearance dark >/dev/null
+  sleep 2
+  xcrun simctl io "$target" screenshot "$out/dark.png"
+  echo "wrote $out/dark.png"
+
+  echo "note: iOS Dynamic Type is not scriptable via simctl." >&2
+  echo "Raise it in Settings > Accessibility > Display & Text Size, then re-run." >&2
+fi
+
+echo
+echo "Captured into $out/. Device settings restored."
+echo "Look for: clipped labels at large text, hard-coded colors in dark,"
+echo "text occlusion, overflow stripes, and body text running edge to edge."

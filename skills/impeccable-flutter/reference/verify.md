@@ -29,12 +29,23 @@ Capture every device class the app ships to: at least one phone, and a tablet wh
 
 ## 3. The four conditions that break layouts
 
-A single default-phone screenshot proves almost nothing. These four are where generated Flutter code fails, and each is one command:
+A single default-phone screenshot proves almost nothing. These are where generated Flutter code actually fails.
 
-- **Dark scheme.** `adb shell cmd uimode night yes`, or `xcrun simctl ui booted appearance dark`. Hard-coded colors show up here and nowhere else.
-- **Large text.** `adb shell settings put system font_scale 1.5` (restore `1.0`). Clipped labels and fixed-height text boxes show up here.
-- **Small phone.** A 5-inch class device. Oversized headlines and fixed widths show up here.
-- **Tablet or split view.** Phone layouts stretched to fill a tablet show up here.
+The skill ships a script that walks the first three off a running device, restoring the device's own settings afterwards — including on Ctrl-C, so a cancelled run does not leave the phone in dark mode at 150% text:
+
+```bash
+<skill-dir>/scripts/capture-conditions --out shots
+<skill-dir>/scripts/capture-conditions --out shots --device <serial>   # several attached
+```
+
+It writes `light.png`, `dark.png` and `large-text.png`. Run the app first; the script captures, it does not launch.
+
+- **Dark scheme.** Hard-coded colors show up here and nowhere else.
+- **Large text.** Clipped labels and fixed-height text boxes show up here. `--scale` sets the factor, default 1.5.
+- **Small phone.** Oversized headlines and fixed widths show up here. Needs a second device; the script captures whichever one it is pointed at.
+- **Tablet or split view.** A stretched phone layout shows up here. Same — point the script at a tablet.
+
+On iOS the script drives `xcrun simctl` for light and dark. Dynamic Type is not scriptable through `simctl`, so raise it in Settings › Accessibility › Display & Text Size and capture again.
 
 ## 4. What the eye still owns
 
