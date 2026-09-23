@@ -63,6 +63,7 @@ A TV build judged as a phone build passes checks it should fail: the tap-target 
 | `audit [target]` | Evaluate | Scored technical review: a11y, performance, theming, conformance, adaptivity | [reference/audit.md](reference/audit.md) |
 | `critique [target]` | Evaluate | UX review: hierarchy, clarity, whether the screen has a point of view | [reference/critique.md](reference/critique.md) |
 | `init` | Build | Start a project: infer what it already is, then build plain or discuss the design | [reference/init.md](reference/init.md) |
+| `vibe [description]` | Build | Show two or three visual directions to choose from, as an artifact | [reference/vibe.md](reference/vibe.md) |
 | `document` | Build | Write DESIGN.md from the existing theme and widgets | [reference/document.md](reference/document.md) |
 | `theme` | Build | Build or repair the ThemeData layer everything else reads from | [reference/theme.md](reference/theme.md) |
 | `typeset [target]` | Enhance | Fix the type scale, fonts, hierarchy, and text scaling | [reference/typeset.md](reference/typeset.md) |
