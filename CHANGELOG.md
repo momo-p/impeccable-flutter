@@ -14,7 +14,7 @@
 
 ### Skill
 
-- `SKILL.md` plus 19 reference playbooks: the Flutter platform contract, TV, theming, type, layout, color, motion, hardening, adaptivity, and verification.
+- `SKILL.md` plus 18 reference playbooks: the Flutter platform contract, TV, theming, type, layout, color, motion, hardening, adaptivity, and verification.
 - `init` asks once whether to build plain or shape the direction first, after reading `signals` so it never asks what the project already answers.
 - `vibe` shows two or three visual directions as an artifact instead of interviewing.
 - `capture-conditions` walks light, dark and large text off a device and restores its settings afterwards.
