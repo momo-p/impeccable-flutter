@@ -7,7 +7,7 @@ Verification runs in **bounded passes**. Build fully, capture once across the de
 ## 1. Static pass
 
 ```bash
-dart run impeccable_flutter detect lib --fail-on error
+impeccable-flutter detect lib --fail-on error
 flutter analyze
 ```
 

@@ -6,6 +6,7 @@ result-*
 # Dart build state
 .dart_tool/
 build/
+detector/build/
 
 # The in-tree pub cache the flake's shellHook points PUB_CACHE at.
 .pub-cache/

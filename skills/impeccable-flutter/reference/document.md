@@ -19,7 +19,7 @@ A missing `DESIGN.md` does not make a project greenfield. The theme and the widg
 The theme is the intent; the widgets are the truth. Run the detector to find where they diverge:
 
 ```bash
-dart run impeccable_flutter detect lib --only hardcoded-color,hardcoded-text-style
+impeccable-flutter detect lib --only hardcoded-color,hardcoded-text-style
 ```
 
 A color used in fourteen places and defined nowhere is part of the real system. Record it as such, and note that it is undeclared.

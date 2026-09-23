@@ -2,7 +2,7 @@ DETECTOR := detector
 P ?= ../flutter-tests/apps/slop_app/lib
 TARGET ?= phone
 
-.PHONY: all check test analyze detect rules registry clean
+.PHONY: all check test analyze detect rules registry build install clean
 
 all: check
 
@@ -19,6 +19,22 @@ test:
 detect:
 	cd $(DETECTOR) && dart run bin/impeccable_flutter.dart detect $(abspath $(P)) --target $(TARGET)
 
+## build: compile the standalone detector binary (no Dart needed to run it)
+build:
+	@mkdir -p $(DETECTOR)/build
+	cd $(DETECTOR) && dart compile exe bin/impeccable_flutter.dart \
+	  -o build/impeccable-flutter
+
+## install: put the launcher on PATH (override with PREFIX=)
+PREFIX ?= $(HOME)/.local/bin
+install: build
+	@mkdir -p $(PREFIX)
+	ln -sf $(abspath skills/impeccable-flutter/scripts/impeccable-flutter) \
+	  $(PREFIX)/impeccable-flutter
+	@echo "linked $(PREFIX)/impeccable-flutter"
+	@command -v impeccable-flutter >/dev/null 2>&1 \
+	  || echo "note: $(PREFIX) is not on your PATH"
+
 ## rules: print the rule catalog
 rules:
 	cd $(DETECTOR) && dart run bin/impeccable_flutter.dart rules
@@ -30,4 +46,4 @@ registry:
 	@echo "extracted $$(grep -c '\"id\"' tool/upstream_registry.json) rules"
 
 clean:
-	rm -rf $(DETECTOR)/.dart_tool
+	rm -rf $(DETECTOR)/.dart_tool $(DETECTOR)/build

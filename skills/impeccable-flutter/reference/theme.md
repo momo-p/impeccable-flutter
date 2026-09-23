@@ -5,7 +5,7 @@ Build or repair the `ThemeData` layer everything else reads from. This is the hi
 ## 1. Find what exists
 
 ```bash
-dart run impeccable_flutter detect lib --only hardcoded-color,hardcoded-text-style
+impeccable-flutter detect lib --only hardcoded-color,hardcoded-text-style
 ```
 
 Group the literals. A color used in 14 places is one role; a color used once may be a genuine one-off. Count before naming.

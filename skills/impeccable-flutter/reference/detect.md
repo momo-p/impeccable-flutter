@@ -3,12 +3,12 @@
 Run the deterministic rule engine over Dart source. No model, no network, no running app.
 
 ```bash
-dart run impeccable_flutter detect lib
-dart run impeccable_flutter detect lib --target tv
-dart run impeccable_flutter detect lib/screens/home.dart --json
-dart run impeccable_flutter detect lib --only hardcoded-color,missing-semantics
-dart run impeccable_flutter detect lib --ignore em-dash-overuse --fail-on error
-dart run impeccable_flutter rules
+impeccable-flutter detect lib
+impeccable-flutter detect lib --target tv
+impeccable-flutter detect lib/screens/home.dart --json
+impeccable-flutter detect lib --only hardcoded-color,missing-semantics
+impeccable-flutter detect lib --ignore em-dash-overuse --fail-on error
+impeccable-flutter rules
 ```
 
 From the repo, `make detect P=path/to/lib` does the same.
@@ -40,15 +40,15 @@ And these move with the target:
 | `tap-target-undersized` | 48dp | does not apply |
 | `missing-safe-area` | `SafeArea` | replaced by `overscan-unsafe` |
 
-Running a TV codebase on the default target is the most likely way to get a clean report that means nothing. `dart run impeccable_flutter rules` prints each rule's target scope in brackets.
+Running a TV codebase on the default target is the most likely way to get a clean report that means nothing. `impeccable-flutter rules` prints each rule's target scope in brackets.
 
 ## Design system
 
 `--design <path>` points at a `DESIGN.md`; without it the detector walks up from the scanned path to find one. The four `design-system-*` rules stay silent when there is none.
 
 ```bash
-dart run impeccable_flutter detect lib --design DESIGN.md
-dart run impeccable_flutter detect lib --only design-system-color
+impeccable-flutter detect lib --design DESIGN.md
+impeccable-flutter detect lib --only design-system-color
 ```
 
 These rules are the only ones that ask about the project rather than about Flutter. A value they flag is not wrong — it is undeclared. Either add it to the document on purpose, or use the token that already covers the case.

@@ -5,7 +5,7 @@ The final pass before shipping. Everything is built; this closes the gap between
 ## 1. Close the backlog
 
 ```bash
-dart run impeccable_flutter detect lib --fail-on error
+impeccable-flutter detect lib --fail-on error
 flutter analyze
 flutter test
 ```

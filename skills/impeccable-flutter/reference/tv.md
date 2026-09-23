@@ -5,7 +5,7 @@ For Flutter shipping to Android TV, Google TV, Fire TV, or tvOS. Read before any
 Run the detector with the target set, or most of this is unchecked:
 
 ```bash
-dart run impeccable_flutter detect lib --target tv
+impeccable-flutter detect lib --target tv
 ```
 
 ## TV is not a large phone

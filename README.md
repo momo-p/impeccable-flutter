@@ -62,18 +62,18 @@ Alpha is ignored when matching colors, so a declared token used at 40% opacity s
 
 ```bash
 nix develop            # or direnv allow
-make test              # 172 tests
+make test              # 176 tests
 make rules             # the catalog
 make detect P=path/to/your/app/lib
 make detect P=path/to/your/app/lib TARGET=tv
 ```
 
-Directly:
+From any Flutter project, once installed:
 
 ```bash
-cd detector
-dart run bin/impeccable_flutter.dart detect lib --fail-on error
-dart run bin/impeccable_flutter.dart detect lib --only hardcoded-color --json
+impeccable-flutter detect lib --fail-on error
+impeccable-flutter detect lib --target tv
+impeccable-flutter detect lib --only hardcoded-color --json
 ```
 
 Waive a finding inline:
@@ -85,13 +85,25 @@ const brandStamp = Color(0xFF1B7F5C);
 
 A comment on its own line waives the line below; a trailing one waives its own line. `// impeccable-disable-file` covers the file.
 
+## Install
+
+```bash
+make build      # compile detector/build/impeccable-flutter (standalone, no Dart at runtime)
+make install    # symlink the launcher into ~/.local/bin (override with PREFIX=)
+```
+
+`make install` links `skills/impeccable-flutter/scripts/impeccable-flutter`, a launcher that runs the compiled binary when one exists and falls back to the Dart source otherwise. Either way the calling project needs nothing: no pubspec entry, no Dart SDK once the binary is built.
+
+`dart run impeccable_flutter …` only works from inside `detector/`, because `dart run <package>` resolves against the *calling* project's dependencies. Use the launcher from a real Flutter project.
+
 ## Install the skill
 
 ```bash
 cp -r skills/impeccable-flutter ~/.claude/skills/
 ```
 
-Then `/impeccable-flutter detect lib`, or let it trigger on Flutter design work.
+The skill calls the launcher at `<skill-dir>/scripts/impeccable-flutter`, which is copied along with it, so the skill works whether or not the binary is on PATH.
+
 
 ## Test bed
 

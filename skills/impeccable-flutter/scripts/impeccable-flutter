@@ -1,0 +1,34 @@
+#!/usr/bin/env sh
+# Launcher for the detector, following upstream impeccable's shape: run a
+# self-contained binary when one exists, and fall back to the Dart source
+# otherwise. Nothing here needs the calling project to depend on the package,
+# which is the whole point — `dart run impeccable_flutter` only works inside
+# the detector's own package.
+set -eu
+
+self="$0"
+# Resolve one level of symlink so `ln -s` onto PATH still finds the repo.
+if [ -L "$self" ]; then
+  link=$(readlink "$self")
+  case "$link" in
+    /*) self="$link" ;;
+    *) self="$(dirname "$self")/$link" ;;
+  esac
+fi
+here=$(CDPATH= cd -- "$(dirname -- "$self")" && pwd)
+
+# skills/impeccable-flutter/scripts -> repo root
+root=$(CDPATH= cd -- "$here/../../.." && pwd)
+bin="$root/detector/build/impeccable-flutter"
+
+if [ -x "$bin" ]; then
+  exec "$bin" "$@"
+fi
+
+if command -v dart >/dev/null 2>&1; then
+  exec dart run "$root/detector/bin/impeccable_flutter.dart" "$@"
+fi
+
+echo "impeccable-flutter: no binary at $bin and no dart on PATH." >&2
+echo "Build one with:  make -C $root build" >&2
+exit 127
