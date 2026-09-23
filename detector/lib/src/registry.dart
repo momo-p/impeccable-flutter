@@ -1,4 +1,5 @@
 import 'finding.dart';
+import 'target.dart';
 
 /// The Flutter rule catalog.
 ///
@@ -14,6 +15,56 @@ import 'finding.dart';
 /// here. They are not portable to static source; `verify.md` covers them with
 /// screenshots and golden tests instead.
 const List<Rule> kRules = [
+  // ---- Focus-driven targets: TV and the web's keyboard path --------------
+  Rule(
+    id: 'unreachable-by-dpad',
+    category: Category.platform,
+    severity: Severity.error,
+    targets: {Target.tv, Target.web},
+    section: 'Focus',
+    name: 'Control unreachable by D-pad',
+    description:
+        'A GestureDetector.onTap with nothing focusable around it cannot be activated by a remote or by the Tab key. There is no pointer to put on it, so the control does not exist for the user.',
+  ),
+  Rule(
+    id: 'missing-focus-highlight',
+    category: Category.platform,
+    severity: Severity.error,
+    targets: {Target.tv, Target.web},
+    section: 'Focus',
+    name: 'Focusable with no visible focus state',
+    description:
+        'On a focus-driven surface the focus ring is the cursor. A focusable whose subtree never reads hasFocus, onShowFocusHighlight, onFocusChange or focusColor looks identical focused and unfocused, so the user cannot tell where they are.',
+  ),
+  Rule(
+    id: 'no-autofocus-on-route',
+    category: Category.platform,
+    severity: Severity.error,
+    targets: {Target.tv},
+    section: 'Focus',
+    name: 'Screen opens with nothing focused',
+    description:
+        'A screen with focusable controls and no autofocus, FocusScope or FocusTraversalGroup opens with focus nowhere. The first press of the remote does nothing, which reads as a frozen app.',
+  ),
+  Rule(
+    id: 'hover-only-affordance',
+    category: Category.platform,
+    targets: {Target.tv, Target.web},
+    section: 'Focus',
+    name: 'Affordance available only on hover',
+    description:
+        'Behaviour attached to hover with no focus equivalent is unreachable from a remote and from the keyboard. Pair every onHover with onFocusChange or a focus-aware style.',
+  ),
+  Rule(
+    id: 'overscan-unsafe',
+    category: Category.platform,
+    severity: Severity.error,
+    targets: {Target.tv},
+    section: 'Layout',
+    name: 'Content inside the TV overscan band',
+    description:
+        'TV panels may crop the outer 5 percent of the picture. SafeArea does not account for this. Android TV asks for a margin of about 48 logical pixels on a 1920x1080 surface.',
+  ),
   // ---- Ported slop -------------------------------------------------------
   Rule(
     id: 'overused-font',

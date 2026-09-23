@@ -5,7 +5,7 @@ Design guidance and a deterministic detector for Flutter, ported from [pbakaus/i
 Two pieces:
 
 - **`skills/impeccable-flutter/`** — an agent skill: `SKILL.md` plus 16 reference playbooks covering the Flutter platform contract, theming, type, layout, color, motion, hardening, adaptivity, and a device-based verification loop.
-- **`detector/`** — a zero-dependency Dart CLI that runs 36 rules over Dart source. No model, no network, no running app.
+- **`detector/`** — a zero-dependency Dart CLI that runs 41 rules over Dart source across four target surfaces (phone, tablet, TV, web). No model, no network, no running app.
 
 ## Why a port rather than a config
 
@@ -19,19 +19,20 @@ What does transfer is the rule catalog. `tool/extract_registry.pl` pulls all 61 
 |---|---|---|
 | `slop` | 17 | Taste failures, all ported from upstream |
 | `quality` | 7 | Defects a user feels, all ported |
-| `platform` | 12 | Flutter, Material and HIG contracts — no upstream equivalent |
+| `platform` | 17 | Flutter, Material, HIG and TV focus contracts — no upstream equivalent |
 
 Upstream rules needing rendered geometry (`text-occlusion`, `edge-flush-cards`, `broken-image`, `line-length`, `script-error`, `content-hidden-at-rest`, `first-viewport-column-overflow`) are deliberately absent. They are not portable to static source; `reference/verify.md` covers them with screenshots and golden tests instead.
 
-The 12 platform rules are the part that has no upstream counterpart, because a web page has no notch, no text scaler, no predictive back, and no 48dp floor: `hardcoded-color`, `hardcoded-text-style`, `missing-safe-area`, `tap-target-undersized`, `mediaquery-size-branch`, `missing-semantics`, `deprecated-with-opacity`, `unbounded-list`, `fixed-height-text-box`, `platform-control-mix`, `deprecated-will-pop-scope`, `network-image-unguarded`.
+The 17 platform rules are the part that has no upstream counterpart, because a web page has no notch, no text scaler, no predictive back, no D-pad and no 48dp floor: `hardcoded-color`, `hardcoded-text-style`, `missing-safe-area`, `tap-target-undersized`, `mediaquery-size-branch`, `missing-semantics`, `deprecated-with-opacity`, `unbounded-list`, `fixed-height-text-box`, `platform-control-mix`, `deprecated-will-pop-scope`, `network-image-unguarded`, plus five that only apply to focus-driven surfaces: `unreachable-by-dpad`, `missing-focus-highlight`, `no-autofocus-on-route`, `hover-only-affordance`, `overscan-unsafe`.
 
 ## Use
 
 ```bash
 nix develop            # or direnv allow
-make test              # 102 tests
+make test              # 119 tests
 make rules             # the catalog
 make detect P=path/to/your/app/lib
+make detect P=path/to/your/app/lib TARGET=tv
 ```
 
 Directly:

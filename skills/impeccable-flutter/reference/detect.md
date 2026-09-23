@@ -4,6 +4,7 @@ Run the deterministic rule engine over Dart source. No model, no network, no run
 
 ```bash
 dart run impeccable_flutter detect lib
+dart run impeccable_flutter detect lib --target tv
 dart run impeccable_flutter detect lib/screens/home.dart --json
 dart run impeccable_flutter detect lib --only hardcoded-color,missing-semantics
 dart run impeccable_flutter detect lib --ignore em-dash-overuse --fail-on error
@@ -17,6 +18,29 @@ From the repo, `make detect P=path/to/lib` does the same.
 Every `.dart` file under the paths given, skipping `.dart_tool/`, `build/`, `.g.dart` and `.freezed.dart` — generated code is not the author's design work.
 
 Comments and string bodies are blanked before matching, so a widget name in a doc comment is not a finding. String literals are kept separately for the copy rules.
+
+## Targets
+
+`--target phone|tablet|tv|web` (default `phone`) decides which rules run and what their thresholds are. Five rules only exist on focus-driven surfaces:
+
+```
+unreachable-by-dpad       [tv, web]   error
+missing-focus-highlight   [tv, web]   error
+no-autofocus-on-route     [tv]        error
+hover-only-affordance     [tv, web]   warning
+overscan-unsafe           [tv]        error
+```
+
+And these move with the target:
+
+| Rule | phone | tv |
+|---|---|---|
+| `tiny-text` floor | 11 | 20 |
+| `oversized-headline` ceiling | 56 | 96 |
+| `tap-target-undersized` | 48dp | does not apply |
+| `missing-safe-area` | `SafeArea` | replaced by `overscan-unsafe` |
+
+Running a TV codebase on the default target is the most likely way to get a clean report that means nothing. `dart run impeccable_flutter rules` prints each rule's target scope in brackets.
 
 ## Reading the output
 

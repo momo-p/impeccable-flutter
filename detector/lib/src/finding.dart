@@ -1,3 +1,5 @@
+import 'target.dart';
+
 /// The finding shape mirrors upstream impeccable's `foundation::findings::Finding`
 /// (`antipattern, name, description, severity, category, file, line, snippet`)
 /// so reports read the same whether they came from the web engine or this one.
@@ -51,6 +53,7 @@ class Rule {
     this.severity = Severity.warning,
     this.portOf,
     this.section,
+    this.targets,
   });
 
   final String id;
@@ -65,4 +68,11 @@ class Rule {
 
   /// The reference playbook section that explains the fix.
   final String? section;
+
+  /// The targets this rule applies to. Null means every target: most design
+  /// failures are failures everywhere. A non-null set is for rules that only
+  /// make sense given a particular input model, such as a D-pad.
+  final Set<Target>? targets;
+
+  bool appliesTo(Target target) => targets == null || targets!.contains(target);
 }

@@ -1,5 +1,6 @@
 DETECTOR := detector
 P ?= ../flutter-tests/apps/slop_app/lib
+TARGET ?= phone
 
 .PHONY: all check test analyze detect rules registry clean
 
@@ -14,9 +15,9 @@ analyze:
 test:
 	cd $(DETECTOR) && dart test
 
-## detect: run the detector over a Flutter project — make detect P=path/to/lib
+## detect: run the detector over a Flutter project — make detect P=path/to/lib [TARGET=tv]
 detect:
-	cd $(DETECTOR) && dart run bin/impeccable_flutter.dart detect $(abspath $(P))
+	cd $(DETECTOR) && dart run bin/impeccable_flutter.dart detect $(abspath $(P)) --target $(TARGET)
 
 ## rules: print the rule catalog
 rules:

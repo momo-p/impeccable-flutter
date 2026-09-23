@@ -13,6 +13,8 @@ Options
   --json              Machine-readable findings
   --only <ids>        Comma-separated rule ids to run
   --ignore <ids>      Comma-separated rule ids to skip
+  --target <surface>  phone (default) | tablet | tv | web — changes which
+                      rules apply and the thresholds they use
   --fail-on <level>   Exit 1 at or above this severity: error|warning|advisory
 
 Waivers
@@ -53,12 +55,19 @@ void main(List<String> argv) {
       final only = listOpt('--only');
       final ignore = listOpt('--ignore');
       final failOn = stringOpt('--fail-on');
+      final targetName = stringOpt('--target') ?? 'phone';
+      final target = Target.parse(targetName);
+      if (target == null) {
+        stderr.writeln('--target: expected phone|tablet|tv|web, got "$targetName"');
+        exit(64);
+      }
       final paths = rest.where((a) => !a.startsWith('-')).toList();
       if (paths.isEmpty) {
         stderr.writeln('detect: no paths given');
         exit(64);
       }
-      _detect(paths, only: only, ignore: ignore, json: json, failOn: failOn);
+      _detect(paths,
+          only: only, ignore: ignore, json: json, failOn: failOn, target: target);
     default:
       stdout.write(_usage);
       exit(64);
@@ -78,6 +87,8 @@ void _printRules(bool asJson) {
             'name': r.name,
             'description': r.description,
             if (r.portOf != null) 'portOf': r.portOf,
+            if (r.targets != null)
+              'targets': [for (final t in r.targets!) t.name],
             if (r.section != null) 'section': r.section,
           }
       ],
@@ -90,7 +101,11 @@ void _printRules(bool asJson) {
     stdout.writeln('\n${category.name} (${rows.length})');
     for (final r in rows) {
       final port = r.portOf == null ? 'flutter-only' : 'ports ${r.portOf}';
-      stdout.writeln('  ${r.id.padRight(28)} ${r.severity.name.padRight(9)} $port');
+      final scope = r.targets == null
+          ? ''
+          : '  [${r.targets!.map((t) => t.name).join(", ")}]';
+      stdout.writeln(
+          '  ${r.id.padRight(28)} ${r.severity.name.padRight(9)} $port$scope');
     }
   }
   stdout.writeln('\n${kRules.length} rules total.');
@@ -101,9 +116,11 @@ void _detect(
   required Set<String> only,
   required Set<String> ignore,
   required bool json,
+  required Target target,
   String? failOn,
 }) {
-  final findings = Scanner(only: only, ignore: ignore).scanPaths(paths);
+  final findings =
+      Scanner(only: only, ignore: ignore, target: target).scanPaths(paths);
 
   if (json) {
     stdout.writeln(const JsonEncoder.withIndent('  ')

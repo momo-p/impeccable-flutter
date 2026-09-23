@@ -4,16 +4,19 @@ import 'finding.dart';
 import 'registry.dart';
 import 'rules.dart';
 import 'source.dart';
+import 'target.dart';
 
 /// Runs the rule set over Dart source and applies inline waivers, the way
 /// upstream's `detect_text` does for HTML/CSS.
 class Scanner {
-  Scanner({Set<String>? only, Set<String>? ignore})
+  Scanner({Set<String>? only, Set<String>? ignore, Target target = Target.phone})
       : only = only ?? const {},
-        ignore = ignore ?? const {};
+        ignore = ignore ?? const {},
+        profile = Profile(target);
 
   final Set<String> only;
   final Set<String> ignore;
+  final Profile profile;
 
   List<Finding> scanSource(String path, String text) {
     final src = DartSource.parse(path, text);
@@ -25,6 +28,7 @@ class Scanner {
       if (rule == null) {
         throw StateError('rule "$ruleId" fired but is not in the registry');
       }
+      if (!rule.appliesTo(profile.target)) return;
       if (only.isNotEmpty && !only.contains(ruleId)) return;
       if (ignore.contains(ruleId)) return;
       if (src.isWaived(line, ruleId)) return;
@@ -41,7 +45,7 @@ class Scanner {
     }
 
     for (final check in kChecks) {
-      check(src, emit);
+      check(src, profile, emit);
     }
     out.sort((a, b) {
       final byLine = a.line.compareTo(b.line);

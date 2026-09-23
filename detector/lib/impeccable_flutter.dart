@@ -9,4 +9,5 @@ export 'src/colors.dart' show Rgb, contrastRatio, parseColor;
 export 'src/finding.dart';
 export 'src/registry.dart';
 export 'src/scanner.dart';
+export 'src/target.dart';
 export 'src/source.dart' show DartSource, WidgetCall;

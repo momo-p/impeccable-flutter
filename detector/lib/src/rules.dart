@@ -1,7 +1,8 @@
 import 'colors.dart';
+import 'target.dart';
 import 'source.dart';
 
-typedef RuleCheck = void Function(DartSource src, Emit emit);
+typedef RuleCheck = void Function(DartSource src, Profile profile, Emit emit);
 typedef Emit = void Function(String ruleId, int line, {String? detail, String? snippet});
 
 /// Widget names that make their subtree tappable.
@@ -60,13 +61,18 @@ final List<RuleCheck> kChecks = [
   _fixedHeightTextBox,
   _platformControlMix,
   _networkImageUnguarded,
+  _unreachableByDpad,
+  _missingFocusHighlight,
+  _noAutofocusOnRoute,
+  _hoverOnlyAffordance,
+  _overscanUnsafe,
 ];
 
 // --------------------------------------------------------------------------
 // Ported slop
 // --------------------------------------------------------------------------
 
-void _overusedFont(DartSource src, Emit emit) {
+void _overusedFont(DartSource src, Profile profile, Emit emit) {
   final re = RegExp(
       r"""(?:fontFamily\s*:\s*['"]([^'"]+)['"])|(?:GoogleFonts\.([a-zA-Z]+)\s*\()""");
   // fontFamily values live in string literals, which `masked` blanks, so this
@@ -78,7 +84,7 @@ void _overusedFont(DartSource src, Emit emit) {
   }
 }
 
-void _gradientText(DartSource src, Emit emit) {
+void _gradientText(DartSource src, Profile profile, Emit emit) {
   for (final mask in src.calls.where((c) => c.name == 'ShaderMask')) {
     final inner = src.calls.where(mask.contains);
     if (inner.any((c) => c.name == 'Text') &&
@@ -88,7 +94,7 @@ void _gradientText(DartSource src, Emit emit) {
   }
 }
 
-void _aiColorPalette(DartSource src, Emit emit) {
+void _aiColorPalette(DartSource src, Profile profile, Emit emit) {
   final hits = <int>[];
   for (final c in findColors(src.masked)) {
     if (isAiPaletteHue(c.rgb)) hits.add(c.offset);
@@ -100,7 +106,7 @@ void _aiColorPalette(DartSource src, Emit emit) {
       detail: '${hits.length} colors in the indigo-violet band');
 }
 
-void _nestedCards(DartSource src, Emit emit) {
+void _nestedCards(DartSource src, Profile profile, Emit emit) {
   final cards = src.calls.where((c) => c.name == 'Card').toList();
   for (final outer in cards) {
     for (final inner in cards) {
@@ -111,14 +117,14 @@ void _nestedCards(DartSource src, Emit emit) {
   }
 }
 
-void _bounceEasing(DartSource src, Emit emit) {
+void _bounceEasing(DartSource src, Profile profile, Emit emit) {
   final re = RegExp(r'\bCurves\.(bounce\w+|elastic\w+|easeOutBack|easeInBack|easeInOutBack)\b');
   for (final m in re.allMatches(src.masked)) {
     emit('bounce-easing', src.lineAt(m.start), detail: 'Curves.${m[1]}');
   }
 }
 
-void _sideTab(DartSource src, Emit emit) {
+void _sideTab(DartSource src, Profile profile, Emit emit) {
   // Border(left: BorderSide(...)) / Border(right: ...) with a visible width.
   for (final border in src.calls.where((c) => c.name == 'Border' && c.constructor == null)) {
     for (final side in ['left', 'right', 'top', 'bottom']) {
@@ -147,7 +153,7 @@ void _sideTab(DartSource src, Emit emit) {
   }
 }
 
-void _darkGlow(DartSource src, Emit emit) {
+void _darkGlow(DartSource src, Profile profile, Emit emit) {
   for (final s in src.calls.where((c) => c.name == 'BoxShadow')) {
     final blur = s.numArg('blurRadius') ?? 0;
     final offset = s.arg('offset') ?? '';
@@ -160,7 +166,7 @@ void _darkGlow(DartSource src, Emit emit) {
   }
 }
 
-void _radialHalo(DartSource src, Emit emit) {
+void _radialHalo(DartSource src, Profile profile, Emit emit) {
   for (final g in src.calls.where((c) => c.name == 'RadialGradient')) {
     final inDecoration = src.calls.any((c) =>
         c.name == 'BoxDecoration' && c.contains(g));
@@ -168,7 +174,7 @@ void _radialHalo(DartSource src, Emit emit) {
   }
 }
 
-void _iconTileStack(DartSource src, Emit emit) {
+void _iconTileStack(DartSource src, Profile profile, Emit emit) {
   for (final col in src.calls.where((c) => c.name == 'Column')) {
     final children = src.calls.where(col.contains).toList();
     final tile = children.firstWhere(
@@ -184,7 +190,7 @@ void _iconTileStack(DartSource src, Emit emit) {
   }
 }
 
-void _kickerAboveHeading(DartSource src, Emit emit) {
+void _kickerAboveHeading(DartSource src, Profile profile, Emit emit) {
   for (final col in src.calls.where((c) => c.name == 'Column')) {
     final texts = src.calls
         .where((c) => col.contains(c) && c.name == 'Text')
@@ -215,17 +221,17 @@ double? _fontSizeOf(DartSource src, WidgetCall text) {
   return style.numArg('fontSize');
 }
 
-void _typeScaleRules(DartSource src, Emit emit) {
+void _typeScaleRules(DartSource src, Profile profile, Emit emit) {
   final sizes = <double>[];
   for (final style in src.calls.where((c) => c.name == 'TextStyle')) {
     final size = style.numArg('fontSize');
     if (size == null) continue;
     sizes.add(size);
 
-    if (size < 11) {
+    if (size < profile.minBodyTextSize) {
       emit('tiny-text', style.line, detail: 'fontSize: $size');
     }
-    if (size > 56) {
+    if (size > profile.maxHeadlineSize) {
       emit('oversized-headline', style.line, detail: 'fontSize: $size');
     }
     final tracking = style.numArg('letterSpacing');
@@ -259,7 +265,7 @@ void _typeScaleRules(DartSource src, Emit emit) {
   }
 }
 
-void _monotonousSpacing(DartSource src, Emit emit) {
+void _monotonousSpacing(DartSource src, Profile profile, Emit emit) {
   final values = <double, int>{};
   int? firstLine;
   void note(double v, int line) {
@@ -290,7 +296,7 @@ void _monotonousSpacing(DartSource src, Emit emit) {
   }
 }
 
-void _copyRules(DartSource src, Emit emit) {
+void _copyRules(DartSource src, Profile profile, Emit emit) {
   var emDashes = 0;
   int? emDashLine;
   for (final lit in src.strings) {
@@ -314,7 +320,7 @@ void _copyRules(DartSource src, Emit emit) {
   }
 }
 
-void _crampedPadding(DartSource src, Emit emit) {
+void _crampedPadding(DartSource src, Profile profile, Emit emit) {
   for (final c in src.calls.where((c) => c.name == 'EdgeInsets')) {
     final nums = RegExp(r'([\d.]+)')
         .allMatches(c.args)
@@ -332,7 +338,7 @@ void _crampedPadding(DartSource src, Emit emit) {
   }
 }
 
-void _layoutTransition(DartSource src, Emit emit) {
+void _layoutTransition(DartSource src, Profile profile, Emit emit) {
   for (final c in src.calls.where((c) =>
       c.name == 'AnimatedContainer' || c.name == 'AnimatedPositioned')) {
     if (c.arg('width') != null || c.arg('height') != null) {
@@ -342,7 +348,7 @@ void _layoutTransition(DartSource src, Emit emit) {
   }
 }
 
-void _lowContrast(DartSource src, Emit emit) {
+void _lowContrast(DartSource src, Profile profile, Emit emit) {
   // A literal text color inside a container with a literal background is the
   // one contrast pair a static pass can actually resolve.
   for (final box in src.calls.where((c) => c.name == 'BoxDecoration' || c.name == 'Container')) {
@@ -370,7 +376,7 @@ void _lowContrast(DartSource src, Emit emit) {
 // Flutter platform rules
 // --------------------------------------------------------------------------
 
-void _hardcodedColor(DartSource src, Emit emit) {
+void _hardcodedColor(DartSource src, Profile profile, Emit emit) {
   if (_isThemeFile(src)) return;
   const colorArgs = [
     'color', 'backgroundColor', 'foregroundColor', 'fillColor',
@@ -391,7 +397,7 @@ void _hardcodedColor(DartSource src, Emit emit) {
   }
 }
 
-void _hardcodedTextStyle(DartSource src, Emit emit) {
+void _hardcodedTextStyle(DartSource src, Profile profile, Emit emit) {
   if (_isThemeFile(src)) return;
   for (final c in src.calls.where((c) => c.name == 'TextStyle')) {
     if (c.numArg('fontSize') == null) continue;
@@ -405,9 +411,10 @@ void _hardcodedTextStyle(DartSource src, Emit emit) {
   }
 }
 
-void _missingSafeArea(DartSource src, Emit emit) {
+void _missingSafeArea(DartSource src, Profile profile, Emit emit) {
   final scaffolds = src.calls.where((c) => c.name == 'Scaffold').toList();
   if (scaffolds.isEmpty) return;
+  if (profile.target == Target.tv) return; // overscan-unsafe covers TV
   if (src.calls.any((c) => c.name == 'SafeArea')) return;
   for (final s in scaffolds) {
     // An AppBar covers the top inset; the bottom one still needs handling.
@@ -415,12 +422,14 @@ void _missingSafeArea(DartSource src, Emit emit) {
   }
 }
 
-void _tapTargetUndersized(DartSource src, Emit emit) {
+void _tapTargetUndersized(DartSource src, Profile profile, Emit emit) {
+  if (!profile.isTouch) return;
   for (final box in src.calls.where((c) => c.name == 'SizedBox' || c.name == 'Container')) {
     final w = box.numArg('width');
     final h = box.numArg('height');
     if (w == null && h == null) continue;
-    final small = (w != null && w < 48) || (h != null && h < 48);
+    final min = profile.minTapTarget;
+    final small = (w != null && w < min) || (h != null && h < min);
     if (!small) continue;
     final tappable = src.calls.any((c) => box.contains(c) && _tapWidgets.contains(c.name));
     if (tappable) {
@@ -441,7 +450,7 @@ void _tapTargetUndersized(DartSource src, Emit emit) {
   }
 }
 
-void _mediaQuerySizeBranch(DartSource src, Emit emit) {
+void _mediaQuerySizeBranch(DartSource src, Profile profile, Emit emit) {
   final re = RegExp(r'MediaQuery\.(?:of\(\s*context\s*\)\.size|sizeOf\(\s*context\s*\))\.(width|height)');
   for (final m in re.allMatches(src.masked)) {
     // Only flag when the value drives a decision or a dimension, not when it
@@ -457,7 +466,7 @@ void _mediaQuerySizeBranch(DartSource src, Emit emit) {
   }
 }
 
-void _missingSemantics(DartSource src, Emit emit) {
+void _missingSemantics(DartSource src, Profile profile, Emit emit) {
   for (final b in src.calls.where((c) => c.name == 'IconButton')) {
     if (b.arg('tooltip') == null) {
       emit('missing-semantics', b.line, detail: 'IconButton without tooltip');
@@ -473,7 +482,7 @@ void _missingSemantics(DartSource src, Emit emit) {
   }
 }
 
-void _deprecatedApis(DartSource src, Emit emit) {
+void _deprecatedApis(DartSource src, Profile profile, Emit emit) {
   for (final m in RegExp(r'\.withOpacity\(').allMatches(src.masked)) {
     emit('deprecated-with-opacity', src.lineAt(m.start));
   }
@@ -482,7 +491,7 @@ void _deprecatedApis(DartSource src, Emit emit) {
   }
 }
 
-void _unboundedList(DartSource src, Emit emit) {
+void _unboundedList(DartSource src, Profile profile, Emit emit) {
   const scrollers = {'ListView', 'GridView', 'CustomScrollView', 'SingleChildScrollView'};
   for (final col in src.calls.where((c) => c.name == 'Column' || c.name == 'Row')) {
     for (final list in src.calls.where((c) => col.contains(c) && scrollers.contains(c.name))) {
@@ -499,7 +508,7 @@ void _unboundedList(DartSource src, Emit emit) {
   }
 }
 
-void _fixedHeightTextBox(DartSource src, Emit emit) {
+void _fixedHeightTextBox(DartSource src, Profile profile, Emit emit) {
   for (final box in src.calls.where((c) => c.name == 'SizedBox')) {
     final h = box.numArg('height');
     if (h == null || h > 200) continue;
@@ -510,7 +519,8 @@ void _fixedHeightTextBox(DartSource src, Emit emit) {
   }
 }
 
-void _platformControlMix(DartSource src, Emit emit) {
+void _platformControlMix(DartSource src, Profile profile, Emit emit) {
+  if (profile.target == Target.tv) return;
   final cupertino = RegExp(r'\bCupertino[A-Z]\w*\s*\(').firstMatch(src.masked);
   if (cupertino == null) return;
   final material = RegExp(
@@ -521,7 +531,7 @@ void _platformControlMix(DartSource src, Emit emit) {
       detail: '${cupertino[0]!.trim()} beside ${material[1]}');
 }
 
-void _networkImageUnguarded(DartSource src, Emit emit) {
+void _networkImageUnguarded(DartSource src, Profile profile, Emit emit) {
   for (final img in src.calls
       .where((c) => c.name == 'Image' && c.constructor == 'network')) {
     if (img.arg('errorBuilder') == null) {
@@ -531,5 +541,99 @@ void _networkImageUnguarded(DartSource src, Emit emit) {
   for (final m in RegExp(r'NetworkImage\(').allMatches(src.masked)) {
     emit('network-image-unguarded', src.lineAt(m.start),
         detail: 'NetworkImage has no error path at all');
+  }
+}
+
+// --------------------------------------------------------------------------
+// Focus-driven targets (TV, and the web's keyboard path)
+//
+// These have no counterpart in upstream impeccable: a web page has no D-pad,
+// and a phone has no focus ring. On a TV the focus ring is the cursor, so a
+// control that cannot take focus or does not visibly change when it has focus
+// is not styled badly — it is unusable.
+// --------------------------------------------------------------------------
+
+/// Widgets that bring their own focus handling and focus visuals.
+const _focusableWidgets = {
+  'ElevatedButton', 'FilledButton', 'OutlinedButton', 'TextButton',
+  'IconButton', 'FloatingActionButton', 'InkWell', 'InkResponse',
+  'FocusableActionDetector', 'Focus', 'TextField', 'TextFormField',
+  'ListTile', 'Radio', 'Checkbox', 'Switch', 'MenuItemButton',
+};
+
+void _unreachableByDpad(DartSource src, Profile profile, Emit emit) {
+  if (!profile.isFocusDriven) return;
+  for (final g in src.calls.where((c) => c.name == 'GestureDetector')) {
+    if (g.arg('onTap') == null) continue;
+    final wrapped = src.calls.any((c) =>
+        c.contains(g) && _focusableWidgets.contains(c.name));
+    if (!wrapped) {
+      emit('unreachable-by-dpad', g.line,
+          detail: 'GestureDetector.onTap with nothing focusable around it');
+    }
+  }
+}
+
+void _missingFocusHighlight(DartSource src, Profile profile, Emit emit) {
+  if (!profile.isFocusDriven) return;
+  for (final f in src.calls
+      .where((c) => c.name == 'Focus' || c.name == 'FocusableActionDetector')) {
+    // Something in the subtree has to react to focus, or the ring is invisible.
+    final reacts = RegExp(
+            r'\b(hasFocus|onShowFocusHighlight|onFocusChange|focusColor|focusNode\s*:\s*\w+\s*,?\s*\)?\s*builder)')
+        .hasMatch(f.rawArgs);
+    if (!reacts) {
+      emit('missing-focus-highlight', f.line,
+          detail: '${f.name} whose subtree never reads focus state');
+    }
+  }
+}
+
+void _noAutofocusOnRoute(DartSource src, Profile profile, Emit emit) {
+  if (!profile.isFocusDriven) return;
+  final scaffolds = src.calls.where((c) => c.name == 'Scaffold').toList();
+  if (scaffolds.isEmpty) return;
+  final focusable = src.calls.any((c) => _focusableWidgets.contains(c.name));
+  if (!focusable) return;
+  if (RegExp(r'autofocus\s*:\s*true').hasMatch(src.masked)) return;
+  if (src.calls.any((c) => c.name == 'FocusScope' || c.name == 'FocusTraversalGroup')) {
+    return;
+  }
+  emit('no-autofocus-on-route', scaffolds.first.line,
+      detail: 'screen has focusable controls but nothing takes focus on entry');
+}
+
+void _hoverOnlyAffordance(DartSource src, Profile profile, Emit emit) {
+  if (profile.isTouch) return;
+  for (final c in src.calls) {
+    final hover = c.arg('onHover') ?? (c.name == 'MouseRegion' ? c.arg('onEnter') : null);
+    if (hover == null) continue;
+    final hasFocusPath = c.arg('onFocusChange') != null ||
+        c.arg('focusColor') != null ||
+        src.calls.any((p) => p.contains(c) && p.name == 'FocusableActionDetector');
+    if (!hasFocusPath) {
+      emit('hover-only-affordance', c.line,
+          detail: '${c.name} reacts to hover with no focus equivalent');
+    }
+  }
+}
+
+void _overscanUnsafe(DartSource src, Profile profile, Emit emit) {
+  if (profile.target != Target.tv) return;
+  final scaffolds = src.calls.where((c) => c.name == 'Scaffold').toList();
+  if (scaffolds.isEmpty) return;
+  final inset = profile.overscanInset;
+  final padded = src.calls
+      .where((c) => c.name == 'EdgeInsets' || c.name == 'EdgeInsetsDirectional')
+      .any((c) {
+    final nums = RegExp(r'([\d.]+)')
+        .allMatches(c.args)
+        .map((m) => double.parse(m[1]!))
+        .toList();
+    return nums.isNotEmpty && nums.every((v) => v >= inset);
+  });
+  if (!padded) {
+    emit('overscan-unsafe', scaffolds.first.line,
+        detail: 'no margin of ${inset.toInt()} or more; TV panels crop the edges');
   }
 }
